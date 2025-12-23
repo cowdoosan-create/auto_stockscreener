@@ -34,6 +34,7 @@
       font-family: ui-sans-serif, system-ui, -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
       height: 100dvh; overflow:hidden;
     }
+
     header{ padding-top: env(safe-area-inset-top); }
     header{
       display:flex; align-items:center; justify-content:space-between; gap:10px;
@@ -77,6 +78,7 @@
       min-height:0;
     }
 
+    /* settings panel */
     .settings{
       display:none;
       position:absolute;
@@ -103,10 +105,18 @@
       padding:12px; border-radius:12px; color:#fecaca; font-size:12px;
     }
 
-    .left{ flex:1; display:flex; flex-direction:column; padding:14px; gap:14px; min-width:0; overflow:hidden; }
+    /* left / right */
+    .left{
+      flex:1;
+      display:flex; flex-direction:column;
+      padding:14px; gap:14px;
+      min-width:0;
+      overflow:hidden;
+    }
     .right{
       width:380px; border-left:1px solid var(--line); background:var(--panel);
-      padding:14px; overflow:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
+      padding:14px;
+      overflow:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
       display:none; min-height:0;
     }
     .right.open{ display:block; }
@@ -114,13 +124,26 @@
       .right{
         position:absolute; inset: calc(58px + env(safe-area-inset-top)) 0 0 0;
         width:auto; z-index:55; display:none;
-        border-left:none; border-top:1px solid var(--line); border-radius:16px 16px 0 0;
+        border-left:none; border-top:1px solid var(--line);
+        border-radius:16px 16px 0 0;
       }
       .right.open{ display:block; }
     }
 
-    .stats{ display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap:12px; }
-    @media (max-width:880px){ .stats{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    /* stat cards */
+    .stats{
+      display:grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr)); /* ✅ 5개로 확장 */
+      gap:12px;
+      min-height:0;
+    }
+    @media (max-width: 980px){
+      .stats{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px){
+      .stats{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
     .card{
       border:1px solid var(--line); background:var(--panel); border-radius:var(--radius);
       padding:12px; cursor:pointer; min-height:80px;
@@ -128,16 +151,21 @@
     }
     .card:active{ transform: translateY(1px); }
     .card.active{ outline:1px solid rgba(148,163,184,.5); background: rgba(148,163,184,.08); }
-    .card .t{ color:var(--muted); font-size:12px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .card .t{
+      color:var(--muted); font-size:12px;
+      display:flex; align-items:center; justify-content:space-between; gap:8px;
+    }
     .badgeIcon{
       width:30px; height:30px; border-radius:12px; display:grid; place-items:center;
       border:1px solid var(--line); background:rgba(255,255,255,.03); color:var(--muted);
     }
     .card .n{ font-size:22px; font-weight:950; margin-top:6px; }
 
+    /* table panel */
     .panel{
       border:1px solid var(--line); background:var(--panel); border-radius:var(--radius);
-      overflow:hidden; display:flex; flex-direction:column; min-height:0;
+      overflow:hidden; display:flex; flex-direction:column;
+      min-height:0;
       box-shadow:0 12px 40px rgba(0,0,0,.20);
     }
     .panelHead{
@@ -150,8 +178,11 @@
       font-size:12px; color:var(--muted);
       padding:3px 10px; border-radius:999px; border:1px solid var(--line); white-space:nowrap;
     }
+
     .tableScroll{
-      overflow:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
+      overflow:auto;
+      -webkit-overflow-scrolling:touch;
+      overscroll-behavior:contain;
       flex:1; min-height:0;
     }
 
@@ -205,6 +236,7 @@
     .sig.yellow{ color:#fde68a; background:rgba(234,179,8,.15); border-color:rgba(234,179,8,.30); }
     .sig.green{ color:#bbf7d0; background:rgba(34,197,94,.15); border-color:rgba(34,197,94,.30); }
 
+    /* right detail */
     .detailTop{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
     .live{
       font-size:11px; padding:6px 10px; border-radius:999px;
@@ -235,6 +267,40 @@
       animation: spin 0.8s linear infinite;
     }
     @keyframes spin{ to { transform: rotate(360deg);} }
+
+    /* ✅ Landscape: 상단카드 1줄 + 가로 스와이프 */
+    @media (orientation: landscape) and (max-height: 520px){
+      header{ padding: 8px 12px; }
+      h1{ font-size:16px; }
+      .sub{ display:none; }
+
+      .wrap{ height: calc(100dvh - 50px - env(safe-area-inset-top)); }
+      .left{ padding:10px; gap:10px; }
+
+      .stats{
+        display:flex;
+        gap:10px;
+        overflow-x:auto;
+        overflow-y:hidden;
+        -webkit-overflow-scrolling:touch;
+        overscroll-behavior-x:contain;
+        padding-bottom:6px;
+        scroll-snap-type: x proximity;
+      }
+      .card{
+        flex: 0 0 240px;  /* 카드 너비 */
+        min-height: 64px;
+        padding:10px;
+        scroll-snap-align: start;
+      }
+      .card .n{ font-size:18px; margin-top:4px; }
+      .badgeIcon{ width:28px; height:28px; border-radius:12px; }
+
+      .panelHead{ padding:10px 12px; }
+      .panelHead h2{ font-size:13px; }
+      .panel{ min-height:0; }
+      .tableScroll{ flex:1 1 auto; min-height:0; max-height:none; }
+    }
   </style>
 </head>
 
@@ -296,17 +362,26 @@
         <div class="t"><span>전체 포착</span><span class="badgeIcon">🔎</span></div>
         <div class="n" id="statTotal">-</div>
       </div>
+
       <div class="card" data-filter="TREND">
         <div class="t"><span>추세 추종</span><span class="badgeIcon" style="border-color:rgba(34,197,94,.35); color:#bbf7d0;">📈</span></div>
         <div class="n" id="statTrend">-</div>
       </div>
+
       <div class="card" data-filter="PULLBACK">
         <div class="t"><span>눌림목</span><span class="badgeIcon" style="border-color:rgba(234,179,8,.35); color:#fde68a;">🟡</span></div>
         <div class="n" id="statPullback">-</div>
       </div>
+
       <div class="card" data-filter="BREAKOUT">
         <div class="t"><span>박스권 돌파</span><span class="badgeIcon" style="border-color:rgba(239,68,68,.35); color:#fecaca;">🚀</span></div>
         <div class="n" id="statBreakout">-</div>
+      </div>
+
+      <!-- ✅ NEW: 찜 목록 -->
+      <div class="card" data-filter="FAV">
+        <div class="t"><span>찜 목록</span><span class="badgeIcon" style="border-color:rgba(234,179,8,.35); color:#fde68a;">⭐</span></div>
+        <div class="n" id="statFav">0</div>
       </div>
     </div>
 
@@ -389,7 +464,7 @@
 
 <script>
 /** =========================
- *  1) CONFIG (신규 URL)
+ *  CONFIG (신규 URL)
  *  ========================= */
 const initialUrls = {
   ALL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=0&single=true&output=csv",
@@ -397,14 +472,16 @@ const initialUrls = {
   PULLBACK: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=852505203&single=true&output=csv",
   BREAKOUT: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=258627301&single=true&output=csv"
 };
-
-const LS_KEY = "quant_screener_urls_v2"; // ✅ v2로 올려서 예전 저장값 꼬임 방지
+const LS_KEY = "quant_screener_urls_v3";
 let sheetUrls = loadUrls();
 
 let data = [];
 let filterType = "ALL";
 let detailStock = null;
-let selectedCodes = new Set();
+
+// ✅ 찜 목록 저장(로컬 유지)
+const FAV_KEY = "quant_screener_favs_v1";
+let selectedCodes = loadFavs();
 
 const $ = (id) => document.getElementById(id);
 const settingsPanel = $("settingsPanel");
@@ -447,9 +524,7 @@ function escapeHtml(str){
   }[s]));
 }
 
-/** =========================
- *  2) CSV 파서(따옴표/쉼표 안전)
- *  ========================= */
+/** CSV robust parser */
 function parseCSVRows(text){
   const rows = [];
   let row = [];
@@ -461,46 +536,22 @@ function parseCSVRows(text){
     const next = text[i+1];
 
     if(ch === '"'){
-      if(inQuotes && next === '"'){ // escaped quote
-        cur += '"';
-        i++;
-      } else {
-        inQuotes = !inQuotes;
-      }
+      if(inQuotes && next === '"'){ cur += '"'; i++; }
+      else { inQuotes = !inQuotes; }
       continue;
     }
-
-    if(!inQuotes && (ch === ",")){
-      row.push(cur);
-      cur = "";
-      continue;
+    if(!inQuotes && ch === ","){ row.push(cur); cur = ""; continue; }
+    if(!inQuotes && ch === "\n"){
+      row.push(cur); rows.push(row);
+      row = []; cur = ""; continue;
     }
-
-    if(!inQuotes && (ch === "\n")){
-      row.push(cur);
-      rows.push(row);
-      row = [];
-      cur = "";
-      continue;
-    }
-
     if(ch === "\r") continue;
     cur += ch;
   }
-
-  // tail
-  if(cur.length || row.length){
-    row.push(cur);
-    rows.push(row);
-  }
+  if(cur.length || row.length){ row.push(cur); rows.push(row); }
   return rows;
 }
 
-/** =========================
- *  3) 데이터 파싱/정규화 (새 헤더 대응)
- *  - ALL은 Trend/Pullback/Breakout 컬럼이 이미 있음
- *  - 그래도 별도 시트로 오버라이드 가능
- *  ========================= */
 function toBool(v){
   const s = String(v ?? "").trim().toLowerCase();
   return (s === "true" || s === "1" || s === "y" || s === "yes" || s === "t");
@@ -514,43 +565,33 @@ function parseAllSheet(text){
   const idx = (name) => headers.findIndex(h => h === name);
 
   const iCode = idx("Code");
-  const iName = idx("Name");
-  const iMarket = idx("Market");
-  const iDate = idx("Date");
-  const iTrend = idx("Trend");
-  const iPull = idx("Pullback");
-  const iBreak = idx("Breakout");
-  const iClose = idx("Close");
-  const iVol = idx("Volume");
-  const iTurn = idx("Turnover");
-  const iRSI = idx("RSI14");
-  const iStoch = idx("Stoch_K");
-
   if(iCode < 0) return [];
+
+  const iName = idx("Name"), iMarket = idx("Market"), iDate = idx("Date");
+  const iTrend = idx("Trend"), iPull = idx("Pullback"), iBreak = idx("Breakout");
+  const iClose = idx("Close"), iVol = idx("Volume"), iTurn = idx("Turnover");
+  const iRSI = idx("RSI14"), iStoch = idx("Stoch_K");
 
   const out = [];
   for(const r of rows.slice(1)){
     const code = pad6(r[iCode]);
     if(!/^\d{6}$/.test(code)) continue;
-
-    const obj = {
+    out.push({
       Code: code,
       Name: iName >= 0 ? String(r[iName] ?? "").trim() : "",
       Market: iMarket >= 0 ? String(r[iMarket] ?? "").trim() : "",
       Date: iDate >= 0 ? String(r[iDate] ?? "").trim() : "",
 
-      // ✅ ALL에 이미 있는 신호
       Trend_Signal: iTrend >= 0 ? toBool(r[iTrend]) : false,
       Pullback_Signal: iPull >= 0 ? toBool(r[iPull]) : false,
       Breakout_Signal: iBreak >= 0 ? toBool(r[iBreak]) : false,
 
       Close: iClose >= 0 ? toNum(r[iClose]) : 0,
       Volume: iVol >= 0 ? toNum(r[iVol]) : 0,
-      Turnover: iTurn >= 0 ? toNum(r[iTurn]) : 0,     // ✅ Turnover(원)
+      Turnover: iTurn >= 0 ? toNum(r[iTurn]) : 0,
       RSI14: iRSI >= 0 ? toNum(r[iRSI]) : 0,
       Stoch_K: iStoch >= 0 ? toNum(r[iStoch]) : 0
-    };
-    out.push(obj);
+    });
   }
   return out;
 }
@@ -558,8 +599,6 @@ function parseAllSheet(text){
 function parseSignalSheetToSet(text){
   const rows = parseCSVRows(text).filter(r => r.some(x => String(x).trim() !== ""));
   if(rows.length < 2) return new Set();
-
-  // 첫 컬럼이 Code라고 가정(혹시 아니어도 0번을 Code로 처리)
   const headers = rows[0].map(h => String(h).trim());
   const codeIdx = headers.findIndex(h => h === "Code");
   const iCode = codeIdx >= 0 ? codeIdx : 0;
@@ -572,9 +611,22 @@ function parseSignalSheetToSet(text){
   return set;
 }
 
-/** =========================
- *  4) Fetch + Merge
- *  ========================= */
+/** FAV persistence */
+function loadFavs(){
+  try{
+    const raw = localStorage.getItem(FAV_KEY);
+    if(!raw) return new Set();
+    const arr = JSON.parse(raw);
+    return new Set((Array.isArray(arr) ? arr : []).map(pad6).filter(x => /^\d{6}$/.test(x)));
+  }catch{
+    return new Set();
+  }
+}
+function saveFavs(){
+  localStorage.setItem(FAV_KEY, JSON.stringify(Array.from(selectedCodes)));
+  $("statFav").textContent = String(selectedCodes.size);
+}
+
 async function fetchText(url){
   const res = await fetch(bust(url), { cache:"no-store" });
   if(!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -594,7 +646,6 @@ async function fetchData(){
   $("refreshIcon").innerHTML = '<span class="spin"></span>';
 
   detailStock = null;
-  selectedCodes = new Set();
   closeDetail();
 
   try{
@@ -608,7 +659,6 @@ async function fetchData(){
     const allData = parseAllSheet(allText);
     if(!allData.length) throw new Error("ALL 시트 파싱 실패. 헤더/데이터 형식을 확인해줘.");
 
-    // ✅ 별도 시트가 있으면 (코드 set)로 오버라이드/보강
     const trendSet = trendText ? parseSignalSheetToSet(trendText) : null;
     const pullSet  = pullText  ? parseSignalSheetToSet(pullText)  : null;
     const breakSet = breakText ? parseSignalSheetToSet(breakText) : null;
@@ -620,7 +670,6 @@ async function fetchData(){
       return s;
     });
 
-    // 정렬: 돌파 > 눌림 > 추세 > 거래대금
     data.sort((a,b) => {
       if(b.Breakout_Signal !== a.Breakout_Signal) return b.Breakout_Signal ? 1 : -1;
       if(b.Pullback_Signal !== a.Pullback_Signal) return b.Pullback_Signal ? 1 : -1;
@@ -630,6 +679,7 @@ async function fetchData(){
 
     updateStats();
     renderTable();
+
     lastUpdatedPill.textContent = "갱신: " + new Date().toLocaleTimeString("ko-KR");
     setStatus("ok","최신 반영");
     openSettings(false);
@@ -643,28 +693,31 @@ async function fetchData(){
   }finally{
     $("refreshBtn").disabled = false;
     $("refreshIcon").textContent = "↻";
+    saveFavs(); // statFav 갱신 포함
   }
 }
 
-/** =========================
- *  5) Render
- *  ========================= */
 function getFiltered(){
   if(filterType === "TREND") return data.filter(x => x.Trend_Signal);
   if(filterType === "PULLBACK") return data.filter(x => x.Pullback_Signal);
   if(filterType === "BREAKOUT") return data.filter(x => x.Breakout_Signal);
+  if(filterType === "FAV") return data.filter(x => selectedCodes.has(x.Code));
   return data;
 }
+
 function updateStats(){
   $("statTotal").textContent = fmt(data.length);
   $("statTrend").textContent = fmt(data.filter(x=>x.Trend_Signal).length);
   $("statPullback").textContent = fmt(data.filter(x=>x.Pullback_Signal).length);
   $("statBreakout").textContent = fmt(data.filter(x=>x.Breakout_Signal).length);
+  $("statFav").textContent = String(selectedCodes.size);
 }
+
 function renderEmpty(msg){
   tbody.innerHTML = `<tr><td colspan="8" class="center muted" style="padding:28px;">${escapeHtml(msg)}</td></tr>`;
   $("rowCount").textContent = "0";
 }
+
 function rsiColor(v){
   const x = Number(v)||0;
   if(x <= 30) return "#60a5fa";
@@ -683,6 +736,11 @@ function renderTable(){
   $("filterLabel").textContent = filterType;
   $("rowCount").textContent = String(rows.length);
 
+  if(filterType === "FAV" && selectedCodes.size === 0){
+    renderEmpty("찜한 종목이 없어. 리스트에서 노란 점으로 찍어줘 ⭐");
+    return;
+  }
+
   if(!rows.length){
     renderEmpty("조건에 맞는 종목이 없어.");
     return;
@@ -698,7 +756,6 @@ function renderTable(){
     const isMulti = selectedCodes.has(s.Code);
 
     const turnoverEok = Math.round(toNum(s.Turnover) / 100000000);
-
     const sigs = [
       s.Breakout_Signal ? `<span class="sig red">돌파</span>` : "",
       s.Pullback_Signal ? `<span class="sig yellow">눌림</span>` : "",
@@ -708,7 +765,7 @@ function renderTable(){
     return `
       <tr class="${isDetail ? "detailSelected" : ""}" data-code="${s.Code}">
         <td class="mono muted">${escapeHtml(s.Code)}</td>
-        <td class="nameCell ${isDetail ? "name detailHi" : "name normal"}">${escapeHtml(s.Name || "")}</td>
+        <td class="nameCell">${escapeHtml(s.Name || "")}</td>
 
         <td class="center">
           <span class="selectHit" data-action="select" data-code="${s.Code}">
@@ -736,9 +793,6 @@ function renderTable(){
   }).join("");
 }
 
-/** =========================
- *  6) Detail
- *  ========================= */
 function openDetail(stock){
   detailStock = stock;
 
@@ -772,7 +826,6 @@ function openDetail(stock){
       "&hidetoptoolbar=1";
   }
 }
-
 function closeDetail(){
   rightPane.classList.remove("open");
   detailStock = null;
@@ -784,18 +837,13 @@ function toggleDetailByCode(code){
   else openDetail(stock);
 }
 
-/** =========================
- *  7) Select
- *  ========================= */
 function toggleSelect(code){
   if(selectedCodes.has(code)) selectedCodes.delete(code);
   else selectedCodes.add(code);
+  saveFavs();
   renderTable();
 }
 
-/** =========================
- *  8) URL Settings
- *  ========================= */
 function loadUrls(){
   try{
     const raw = localStorage.getItem(LS_KEY);
@@ -813,9 +861,6 @@ function openSettings(open){
   settingsPanel.classList.toggle("open", !!open);
 }
 
-/** =========================
- *  9) Bind
- *  ========================= */
 function bind(){
   $("settingsBtn").addEventListener("click", () => openSettings(!settingsPanel.classList.contains("open")));
   $("settingsCloseBtn").addEventListener("click", () => openSettings(false));
@@ -870,6 +915,8 @@ function bind(){
   $("urlTREND").value = sheetUrls.TREND;
   $("urlPULLBACK").value = sheetUrls.PULLBACK;
   $("urlBREAKOUT").value = sheetUrls.BREAKOUT;
+
+  saveFavs();
 }
 
 bind();
