@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <script>
+    // 보안 인증 (비밀번호: fire)
+    if (!sessionStorage.getItem("auth")) {
+      const input = prompt("비밀번호를 입력하세요");
+      if (input !== "fire") {
+        document.body.innerHTML = "<h2 style='color:white; text-align:center; margin-top:50px;'>접근 불가</h2>";
+        throw new Error("Unauthorized");
+      }
+      sessionStorage.setItem("auth", "true");
+    }
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>YJ 퀀트 대시보드</title>
+
+  <style>
+    :root{
+      --bg:#0f172a; --panel:#111c33; --panel2:#0b1224;
+      --line:#223053; --txt:#e5e7eb; --muted:#94a3b8;
+      --blue:#3b82f6; --green:#22c55e; --yellow:#eab308; --red:#ef4444;
+      --radius:14px; --gap:14px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0; background:var(--bg); color:var(--txt);
+      font-family: ui-sans-serif, -apple-system, system-ui, "Apple SD Gothic Neo", sans-serif;
+      height:100vh; overflow:hidden;
+    }
+    header{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:10px 14px; background:var(--panel); border-bottom:1px solid var(--line);
+    }
+    .brand{ display:flex; align-items:center; gap:10px; }
+    .logo{ width:28px; height:28px; border-radius:10px; background:linear-gradient(135deg, #3b82f6, #22c55e); }
+    h1{ margin:0; font-size:18px; }
+    .toolbar{ display:flex; gap:10px; align-items:center; }
+    .pill{ padding:7px 10px; border-radius:999px; font-size:12px; border:1px solid var(--line); }
+    .pill.ok{ color:#a7f3d0; background:rgba(34,197,94,.1); border-color:rgba(34,197,94,.3); }
+    .pill.warn{ color:#fde68a; background:rgba(234,179,8,.1); border-color:rgba(234,179,8,.3); }
+    .btn{ border:1px solid var(--line); background:rgba(59,130,246,.18); color:var(--txt); padding:9px 12px; border-radius:12px; cursor:pointer; font-weight:700; font-size:13px; }
+
+    .wrap{ display:flex; height: calc(100vh - 58px); padding:14px; gap:14px; overflow:hidden; }
+    .left{ flex:1; display:flex; flex-direction:column; gap:14px; overflow:hidden; }
+    
+    /* 분석 섹션 */
+    .analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .analysis-box { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
+    .analysis-title { font-size: 13px; color: var(--yellow); font-weight: 800; margin-bottom: 10px; }
+    .rank-item { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px dotted var(--line); }
+    .rank-count { color: var(--blue); font-weight: bold; }
+
+    /* 테이블 스타일 */
+    .panel{ border:1px solid var(--line); background:var(--panel); border-radius:var(--radius); flex:1; overflow:hidden; display:flex; flex-direction:column; }
+    .tableScroll{ overflow:auto; flex:1; }
+    table{ width:100%; border-collapse:collapse; font-size:13px; }
+    thead th{ position:sticky; top:0; background:var(--panel2); padding:12px; text-align:left; border-bottom:1px solid var(--line); color:var(--muted); font-size:11px; }
+    tbody td{ padding:12px; border-bottom:1px solid rgba(34,48,83,.5); }
+    .numRight { text-align:right; }
+    .mono { font-family: ui-monospace, monospace; }
+    .profit-up { color: var(--green); }
+    .profit-down { color: var(--red); }
+    
+    .sig{ font-size:10px; padding:2px 6px; border-radius:4px; font-weight:bold; margin-right:3px; }
+    .sig.red{ background:rgba(239,68,68,.2); color:#fecaca; }
+    .sig.yellow{ background:rgba(234,179,8,.2); color:#fde68a; }
+    .sig.green{ background:rgba(34,197,94,.2); color:#bbf7d0; }
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="brand">
+    <div class="logo"></div>
+    <h1>YJ 퀀트 대시보드</h1>
+  </div>
+  <div class="toolbar">
+    <span class="pill" id="lastUpdated">갱신: -</span>
+    <span class="pill warn" id="status">연결중</span>
+    <button class="btn" onclick="fetchData()">↻ 새로고침</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="left">
+    <div class="analysis-grid">
+      <div class="analysis-box">
+        <div class="analysis-title">🔥 최다 포착 주도주 (누적)</div>
+        <div id="topFreqList">데이터를 불러오는 중...</div>
+      </div>
+      <div class="analysis-box">
+        <div class="analysis-title">📊 최근 시장 포착 통계</div>
+        <div id="marketStats">전체 데이터를 분석 중입니다.</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="tableScroll">
+        <table>
+          <thead>
+            <tr>
+              <th>종목명 (코드)</th>
+              <th class="numRight">기록가</th>
+              <th class="numRight">현재가</th>
+              <th class="numRight">수익률</th>
+              <th class="numRight">거래대금</th>
+              <th class="numRight">Signal</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 1. 본인의 구글 시트 웹 게시 CSV URL로 교체하세요
+  const URL_ALL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=0&single=true&output=csv";
+  const URL_STORAGE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=2034892211&single=true&output=csv";
+
+  async function fetchData() {
+    const statusEl = document.getElementById('status');
+    statusEl.textContent = "분석중...";
+    
+    try {
+      const [allRes, storageRes] = await Promise.all([
+        fetch(URL_ALL + "&t=" + Date.now()),
+        fetch(URL_STORAGE + "&t=" + Date.now())
+      ]);
+
+      const allData = parseCSV(await allRes.text());
+      const storageData = parseCSV(await storageRes.text());
+
+      renderAnalysis(storageData);
+      renderTable(allData);
+
+      statusEl.textContent = "연결됨";
+      statusEl.className = "pill ok";
+      document.getElementById('lastUpdated').textContent = "갱신: " + new Date().toLocaleTimeString();
+    } catch (e) {
+      statusEl.textContent = "오류";
+      statusEl.className = "pill warn";
+      console.error(e);
+    }
+  }
+
+  function parseCSV(text) {
+    const lines = text.trim().split("\n");
+    if (lines.length < 2) return [];
+    const headers = lines[0].split(",").map(h => h.trim().replace(/"/g, ''));
+    return lines.slice(1).map(line => {
+      const values = line.split(",").map(v => v.trim().replace(/"/g, ''));
+      return headers.reduce((obj, h, i) => {
+        obj[h] = values[i];
+        return obj;
+      }, {});
+    });
+  }
+
+  function renderAnalysis(storage) {
+    // 최다 빈도 분석
+    const counts = {};
+    storage.forEach(r => { if(r.Name) counts[r.Name] = (counts[r.Name] || 0) + 1; });
+    const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 5);
+    
+    document.getElementById('topFreqList').innerHTML = sorted.map(([name, count]) => `
+      <div class="rank-item"><span>${name}</span><span class="rank-count">${count}회 포착</span></div>
+    `).join('');
+
+    // 간단 통계
+    document.getElementById('marketStats').innerHTML = `
+      <div style="font-size:24px; font-weight:900; margin-top:10px;">
+        총 ${storage.length}건의 신호 축적
+      </div>
+      <div class="muted" style="margin-top:5px;">데이터 기반 주도주 탐색 중</div>
+    `;
+  }
+
+  function renderTable(data) {
+    const tbody = document.getElementById('tbody');
+    tbody.innerHTML = data.map(r => {
+      const rec = parseFloat(r.기록가) || 0;
+      const cur = parseFloat(r.현재가) || 0;
+      const profit = rec > 0 ? ((cur - rec) / rec * 100).toFixed(2) : "0.00";
+      const pClass = profit > 0 ? "profit-up" : (profit < 0 ? "profit-down" : "");
+      
+      return `
+        <tr>
+          <td><b>${r.Name}</b> <br><span class="muted mono" style="font-size:11px;">${r.Code}</span></td>
+          <td class="numRight mono">${Math.round(rec).toLocaleString()}</td>
+          <td class="numRight mono">${Math.round(cur).toLocaleString()}</td>
+          <td class="numRight mono ${pClass}">${profit > 0 ? '▲' : '▼'} ${Math.abs(profit)}%</td>
+          <td class="numRight mono">${Math.round(r.Turnover / 100000000)}억</td>
+          <td class="numRight">
+            ${r.Trend === 'TRUE' ? '<span class="sig green">추세</span>' : ''}
+            ${r.Pullback === 'TRUE' ? '<span class="sig yellow">눌림</span>' : ''}
+            ${r.Breakout === 'TRUE' ? '<span class="sig red">돌파</span>' : ''}
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  fetchData();
+</script>
+</body>
+</html>
