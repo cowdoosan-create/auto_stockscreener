@@ -3,7 +3,6 @@
 <head>
   <meta charset="utf-8" />
   <script>
-    // 보안 인증 (비밀번호: fire)
     if (!sessionStorage.getItem("auth")) {
       const input = prompt("비밀번호를 입력하세요");
       if (input !== "fire") {
@@ -14,200 +13,168 @@
     }
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>YJ 퀀트 실시간 대시보드</title>
-
+  <title>YJ 퀀트 대시보드 Pro</title>
   <style>
     :root{
       --bg:#0f172a; --panel:#111c33; --panel2:#0b1224;
       --line:#223053; --txt:#e5e7eb; --muted:#94a3b8;
       --blue:#3b82f6; --green:#22c55e; --yellow:#eab308; --red:#ef4444;
-      --radius:14px; --gap:14px;
+      --radius:14px;
     }
-    *{ box-sizing:border-box; }
-    body{
-      margin:0; background:var(--bg); color:var(--txt);
-      font-family: ui-sans-serif, -apple-system, system-ui, "Apple SD Gothic Neo", sans-serif;
-      height:100vh; overflow:hidden;
-    }
-    header{
-      display:flex; align-items:center; justify-content:space-between;
-      padding:10px 14px; background:var(--panel); border-bottom:1px solid var(--line);
-    }
-    .brand{ display:flex; align-items:center; gap:10px; }
-    .logo{ width:28px; height:28px; border-radius:10px; background:linear-gradient(135deg, #3b82f6, #22c55e); }
-    h1{ margin:0; font-size:18px; }
+    body{ margin:0; background:var(--bg); color:var(--txt); font-family: sans-serif; height:100vh; overflow:hidden; }
+    header{ display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:var(--panel); border-bottom:1px solid var(--line); }
     .toolbar{ display:flex; gap:10px; align-items:center; }
-    .pill{ padding:7px 10px; border-radius:999px; font-size:12px; border:1px solid var(--line); }
-    .pill.ok{ color:#a7f3d0; background:rgba(34,197,94,.1); border-color:rgba(34,197,94,.3); }
-    .btn{ border:1px solid var(--line); background:rgba(59,130,246,.18); color:var(--txt); padding:9px 12px; border-radius:12px; cursor:pointer; font-weight:700; font-size:13px; }
-
-    .wrap{ display:flex; height: calc(100vh - 58px); padding:14px; gap:14px; overflow:hidden; }
-    .left{ flex:1; display:flex; flex-direction:column; gap:14px; overflow:hidden; }
-    
+    .pill{ padding:6px 10px; border-radius:999px; font-size:12px; border:1px solid var(--line); }
+    .pill.ok{ color:#a7f3d0; background:rgba(34,197,94,.1); }
+    .pill.error{ color:#fca5a5; background:rgba(239,68,68,.1); border-color:var(--red); }
+    .btn{ background:rgba(59,130,246,0.2); color:var(--txt); border:1px solid var(--line); padding:8px 12px; border-radius:10px; cursor:pointer; }
+    .wrap{ display:flex; flex-direction:column; height: calc(100vh - 58px); padding:14px; gap:14px; }
     .analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     .analysis-box { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
-    .analysis-title { font-size: 13px; color: var(--yellow); font-weight: 800; margin-bottom: 10px; }
-    .rank-item { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px dotted var(--line); }
-    .rank-count { color: var(--blue); font-weight: bold; }
-
     .panel{ border:1px solid var(--line); background:var(--panel); border-radius:var(--radius); flex:1; overflow:hidden; display:flex; flex-direction:column; }
     .tableScroll{ overflow:auto; flex:1; }
     table{ width:100%; border-collapse:collapse; font-size:13px; }
-    thead th{ position:sticky; top:0; background:var(--panel2); padding:12px; text-align:left; border-bottom:1px solid var(--line); color:var(--muted); font-size:11px; }
+    thead th{ position:sticky; top:0; background:var(--panel2); padding:12px; text-align:left; border-bottom:1px solid var(--line); color:var(--muted); }
     tbody td{ padding:12px; border-bottom:1px solid rgba(34,48,83,.5); }
     .numRight { text-align:right; }
-    .mono { font-family: ui-monospace, monospace; }
     .profit-up { color: var(--green); }
     .profit-down { color: var(--red); }
-    
-    .sig{ font-size:10px; padding:2px 6px; border-radius:4px; font-weight:bold; margin-right:3px; }
-    .sig.red{ background:rgba(239,68,68,.2); color:#fecaca; }
-    .sig.yellow{ background:rgba(234,179,8,.2); color:#fde68a; }
-    .sig.green{ background:rgba(34,197,94,.2); color:#bbf7d0; }
+    .sig{ font-size:10px; padding:2px 6px; border-radius:4px; font-weight:bold; margin-right:3px; background:rgba(255,255,255,0.1); }
   </style>
 </head>
-
 <body>
 <header>
-  <div class="brand">
-    <div class="logo"></div>
-    <h1>YJ 퀀트 대시보드 (Real-time)</h1>
+  <div style="display:flex; align-items:center; gap:10px;">
+    <div style="width:24px; height:24px; background:linear-gradient(to bottom right, #3b82f6, #22c55e); border-radius:6px;"></div>
+    <h1 style="margin:0; font-size:18px;">YJ 퀀트 대시보드</h1>
   </div>
   <div class="toolbar">
     <span class="pill" id="lastUpdated">갱신: -</span>
-    <span class="pill ok" id="status">연결됨</span>
+    <span class="pill ok" id="status">연결중</span>
     <button class="btn" onclick="fetchData()">↻ 새로고침</button>
   </div>
 </header>
 
 <div class="wrap">
-  <div class="left">
-    <div class="analysis-grid">
-      <div class="analysis-box">
-        <div class="analysis-title">🔥 10거래일 최다 포착 주도주</div>
-        <div id="topFreqList">분석 중...</div>
-      </div>
-      <div class="analysis-box">
-        <div class="analysis-title">📊 최근 시장 수급 통계</div>
-        <div id="marketStats">집계 중...</div>
-      </div>
+  <div class="analysis-grid">
+    <div class="analysis-box">
+      <div style="color:var(--yellow); font-size:13px; font-weight:bold; margin-bottom:8px;">🔥 10거래일 최다 포착 (주도주)</div>
+      <div id="topFreqList">데이터 로딩 중...</div>
     </div>
+    <div class="analysis-box">
+      <div style="color:var(--blue); font-size:13px; font-weight:bold; margin-bottom:8px;">📊 2주간 누적 통계</div>
+      <div id="marketStats">-</div>
+    </div>
+  </div>
 
-    <div class="panel">
-      <div class="tableScroll">
-        <table>
-          <thead>
-            <tr>
-              <th>종목명 (코드)</th>
-              <th class="numRight">기록일자</th>
-              <th class="numRight">기록가</th>
-              <th class="numRight">현재가</th>
-              <th class="numRight">수익률</th>
-              <th class="numRight">거래대금</th>
-              <th class="numRight">Signal</th>
-            </tr>
-          </thead>
-          <tbody id="tbody"></tbody>
-        </table>
-      </div>
+  <div class="panel">
+    <div class="tableScroll">
+      <table>
+        <thead>
+          <tr>
+            <th>종목명 (코드)</th>
+            <th class="numRight">기록가</th>
+            <th class="numRight">현재가</th>
+            <th class="numRight">수익률</th>
+            <th class="numRight">거래대금</th>
+            <th class="numRight">Signal</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
     </div>
   </div>
 </div>
 
 <script>
-  // 사용자님의 Storage 시트 CSV URL (현재가가 포함된 시트)
+  // ⚠️ 반드시 구글 시트에서 [파일] -> [공유] -> [웹에 게시] -> [Storage 시트] -> [CSV]를 선택한 주소를 넣으세요.
   const URL_STORAGE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=2034892211&single=true&output=csv";
 
   async function fetchData() {
-    document.getElementById('status').textContent = "연결 중...";
-    try {
-      // 캐시 무력화를 위해 Date.now() 추가
-      const response = await fetch(URL_STORAGE + "&cache=" + Date.now());
-      const rawData = await response.text();
-      const data = parseCSV(rawData);
+    const statusEl = document.getElementById('status');
+    statusEl.textContent = "데이터 확인 중...";
+    statusEl.className = "pill ok";
 
-      if (data.length > 0) {
-        renderAnalysis(data);
-        renderTable(data);
+    try {
+      const response = await fetch(URL_STORAGE + "&t=" + Date.now());
+      if (!response.ok) throw new Error("네트워크 응답 오류");
+      
+      const csvText = await response.text();
+      const data = parseCSV(csvText);
+
+      if (data.length === 0) {
+        statusEl.textContent = "데이터 없음";
+        return;
       }
 
-      document.getElementById('status').textContent = "연결됨";
+      renderAnalysis(data);
+      renderTable(data);
+
+      statusEl.textContent = "연결됨";
       document.getElementById('lastUpdated').textContent = "갱신: " + new Date().toLocaleTimeString();
     } catch (e) {
-      document.getElementById('status').textContent = "연결 실패";
-      console.error(e);
+      console.error("Fetch error:", e);
+      statusEl.textContent = "오류 발생";
+      statusEl.className = "pill error";
     }
   }
 
   function parseCSV(text) {
-    const lines = text.trim().split("\n");
-    if (lines.length < 2) return [];
-    const headers = lines[0].split(",").map(h => h.trim().replace(/["]/g, ""));
-    return lines.slice(1).map(line => {
-      const values = line.split(",").map(v => v.trim().replace(/["]/g, ""));
+    const rows = text.trim().split("\n");
+    if (rows.length < 2) return [];
+    const headers = rows[0].split(",").map(h => h.trim().replace(/"/g, ''));
+    return rows.slice(1).map(row => {
+      // 쉼표가 포함된 숫자 형식을 처리하기 위해 정규식 사용
+      const matches = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+      const values = matches ? matches.map(v => v.replace(/"/g, '').trim()) : [];
       return headers.reduce((obj, h, i) => {
-        obj[h] = values[i];
+        obj[h] = values[i] || "";
         return obj;
       }, {});
     });
   }
 
   function renderAnalysis(data) {
-    // 최근 14일(약 10거래일) 데이터만 필터링
-    const limitDate = new Date();
-    limitDate.setDate(limitDate.getDate() - 14);
+    const fourteenDaysAgo = new Date();
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
 
-    const recentData = data.filter(r => new Date(r.Date) >= limitDate);
-
-    // 종목별 포착 횟수 계산
+    const filtered = data.filter(r => new Date(r.Date) >= fourteenDaysAgo);
     const counts = {};
-    recentData.forEach(r => { if(r.Name) counts[r.Name] = (counts[r.Name] || 0) + 1; });
-    const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 5);
+    filtered.forEach(r => { if(r.Name) counts[r.Name] = (counts[r.Name] || 0) + 1; });
     
-    document.getElementById('topFreqList').innerHTML = sorted.map(([name, count]) => `
-      <div class="rank-item"><span>${name}</span><span class="rank-count">${count}회 포착</span></div>
-    `).join('') || "최근 데이터 없음";
+    const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 5);
+    document.getElementById('topFreqList').innerHTML = sorted.map(([name, count]) => 
+      `<div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;">
+        <span>${name}</span><span style="color:var(--blue); font-weight:bold;">${count}회</span>
+      </div>`).join('') || "최근 데이터 없음";
 
-    document.getElementById('marketStats').innerHTML = `
-      <div style="font-size:24px; font-weight:900; margin-top:10px;">
-        2주간 ${recentData.length}개 신호
-      </div>
-      <div class="muted" style="margin-top:5px;">데이터 소스: Storage 시트 연동 중</div>
-    `;
+    document.getElementById('marketStats').innerHTML = `<div style="font-size:22px; font-weight:bold;">${filtered.length}건 포착</div>`;
   }
 
   function renderTable(data) {
     const tbody = document.getElementById('tbody');
-    
-    // 중복 제거: 종목명 기준 가장 최신 데이터만 추출
-    const uniqueMap = {};
-    data.forEach(item => {
-      uniqueMap[item.Name] = item; 
-    });
-    
-    // 배열로 변환 후 최신순 정렬
-    const displayList = Object.values(uniqueMap).reverse();
+    // 중복 제거 (최신 데이터 우선)
+    const unique = {};
+    data.forEach(r => { unique[r.Name] = r; });
+    const list = Object.values(unique).reverse();
 
-    tbody.innerHTML = displayList.map(r => {
-      const rec = parseFloat(String(r["기록가"]).replace(/,/g, "")) || 0;
-      const cur = parseFloat(String(r["현재가"]).replace(/,/g, "")) || 0;
+    tbody.innerHTML = list.map(r => {
+      const rec = parseFloat(r["기록가"]?.replace(/,/g, "")) || 0;
+      const cur = parseFloat(r["현재가"]?.replace(/,/g, "")) || 0;
+      const profit = rec > 0 ? ((cur - rec) / rec * 100).toFixed(2) : "0.00";
+      const pClass = profit > 0 ? "profit-up" : (profit < 0 ? "profit-down" : "");
       
-      const profit = (rec > 0 && cur > 0) ? ((cur - rec) / rec * 100).toFixed(2) : "0.00";
-      const pClass = parseFloat(profit) > 0 ? "profit-up" : (parseFloat(profit) < 0 ? "profit-down" : "");
-      const pIcon = parseFloat(profit) > 0 ? "▲" : (parseFloat(profit) < 0 ? "▼" : "");
-
       return `
         <tr>
-          <td><b>${r.Name}</b> <br><span class="muted mono" style="font-size:11px;">${r.Code}</span></td>
-          <td class="numRight mono" style="font-size:11px; color:var(--muted);">${r.Date}</td>
-          <td class="numRight mono">${Math.round(rec).toLocaleString()}</td>
-          <td class="numRight mono">${cur > 0 ? Math.round(cur).toLocaleString() : "-"}</td>
-          <td class="numRight mono ${pClass}">${cur > 0 ? pIcon + ' ' + Math.abs(profit) + '%' : '데이터 로딩'}</td>
-          <td class="numRight mono">${Math.round(parseFloat(r.Turnover) / 100000000) || 0}억</td>
+          <td><b>${r.Name}</b><br><span style="font-size:11px; color:var(--muted);">${r.Code}</span></td>
+          <td class="numRight">${rec.toLocaleString()}</td>
+          <td class="numRight">${cur.toLocaleString()}</td>
+          <td class="numRight ${pClass}">${profit > 0 ? '▲' : '▼'} ${Math.abs(profit)}%</td>
+          <td class="numRight">${Math.round(parseFloat(r.Turnover?.replace(/,/g, ""))/100000000) || 0}억</td>
           <td class="numRight">
-            ${r.Trend === 'TRUE' ? '<span class="sig green">추세</span>' : ''}
-            ${r.Pullback === 'TRUE' ? '<span class="sig yellow">눌림</span>' : ''}
-            ${r.Breakout === 'TRUE' ? '<span class="sig red">돌파</span>' : ''}
+            ${r.Trend === 'TRUE' ? '<span class="sig" style="color:#bbf7d0;">추세</span>' : ''}
+            ${r.Pullback === 'TRUE' ? '<span class="sig" style="color:#fde68a;">눌림</span>' : ''}
+            ${r.Breakout === 'TRUE' ? '<span class="sig" style="color:#fecaca;">돌파</span>' : ''}
           </td>
         </tr>
       `;
@@ -215,8 +182,6 @@
   }
 
   fetchData();
-  // 5분마다 자동 업데이트
-  setInterval(fetchData, 300000);
 </script>
 </body>
 </html>
