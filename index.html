@@ -3,7 +3,6 @@
 <head>
   <meta charset="utf-8" />
   <script>
-    // 보안 인증 (비밀번호: fire)
     if (!sessionStorage.getItem("auth")) {
       const input = prompt("비밀번호를 입력하세요");
       if (input !== "fire") {
@@ -14,7 +13,7 @@
     }
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>YJ 퀀트 대시보드</title>
+  <title>YJ 퀀트 대시보드 Pro</title>
 
   <style>
     :root{
@@ -45,14 +44,12 @@
     .wrap{ display:flex; height: calc(100vh - 58px); padding:14px; gap:14px; overflow:hidden; }
     .left{ flex:1; display:flex; flex-direction:column; gap:14px; overflow:hidden; }
     
-    /* 분석 섹션 */
     .analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     .analysis-box { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
     .analysis-title { font-size: 13px; color: var(--yellow); font-weight: 800; margin-bottom: 10px; }
     .rank-item { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px dotted var(--line); }
     .rank-count { color: var(--blue); font-weight: bold; }
 
-    /* 테이블 스타일 */
     .panel{ border:1px solid var(--line); background:var(--panel); border-radius:var(--radius); flex:1; overflow:hidden; display:flex; flex-direction:column; }
     .tableScroll{ overflow:auto; flex:1; }
     table{ width:100%; border-collapse:collapse; font-size:13px; }
@@ -78,7 +75,7 @@
   </div>
   <div class="toolbar">
     <span class="pill" id="lastUpdated">갱신: -</span>
-    <span class="pill warn" id="status">연결중</span>
+    <span class="pill ok" id="status">연결됨</span>
     <button class="btn" onclick="fetchData()">↻ 새로고침</button>
   </div>
 </header>
@@ -87,12 +84,12 @@
   <div class="left">
     <div class="analysis-grid">
       <div class="analysis-box">
-        <div class="analysis-title">🔥 최다 포착 주도주 (누적)</div>
-        <div id="topFreqList">데이터를 불러오는 중...</div>
+        <div class="analysis-title">🔥 10거래일 최다 포착 (주도주)</div>
+        <div id="topFreqList">분석 중...</div>
       </div>
       <div class="analysis-box">
-        <div class="analysis-title">📊 최근 시장 포착 통계</div>
-        <div id="marketStats">전체 데이터를 분석 중입니다.</div>
+        <div class="analysis-title">📊 2주간 신호 누적 통계</div>
+        <div id="marketStats">집계 중...</div>
       </div>
     </div>
 
@@ -117,18 +114,16 @@
 </div>
 
 <script>
-  // 1. 본인의 구글 시트 웹 게시 CSV URL로 교체하세요
-  const URL_ALL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=0&single=true&output=csv";
-  const URL_STORAGE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=2034892211&single=true&output=csv";
+  // ⚠️ 본인의 구글 시트 CSV URL을 입력하세요
+  const URL_ALL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTmOIWOvQUCY5X2IcFFmSfdL5-0mJ2A1hVVYwEtZPBtBPEWVVC4CCmQFD4wTEuNUGQOGNUfdVopVA0D/pub?gid=2016620608&single=true&output=csv";
+  const URL_STORAGE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTmOIWOvQUCY5X2IcFFmSfdL5-0mJ2A1hVVYwEtZPBtBPEWVVC4CCmQFD4wTEuNUGQOGNUfdVopVA0D/pub?gid=1518342735&single=true&output=csv";
 
   async function fetchData() {
-    const statusEl = document.getElementById('status');
-    statusEl.textContent = "분석중...";
-    
+    document.getElementById('status').textContent = "갱신 중...";
     try {
       const [allRes, storageRes] = await Promise.all([
-        fetch(URL_ALL + "&t=" + Date.now()),
-        fetch(URL_STORAGE + "&t=" + Date.now())
+        fetch(URL_ALL + "&cachebust=" + Date.now()),
+        fetch(URL_STORAGE + "&cachebust=" + Date.now())
       ]);
 
       const allData = parseCSV(await allRes.text());
@@ -137,12 +132,10 @@
       renderAnalysis(storageData);
       renderTable(allData);
 
-      statusEl.textContent = "연결됨";
-      statusEl.className = "pill ok";
+      document.getElementById('status').textContent = "연결됨";
       document.getElementById('lastUpdated').textContent = "갱신: " + new Date().toLocaleTimeString();
     } catch (e) {
-      statusEl.textContent = "오류";
-      statusEl.className = "pill warn";
+      document.getElementById('status').textContent = "오류";
       console.error(e);
     }
   }
@@ -150,9 +143,10 @@
   function parseCSV(text) {
     const lines = text.trim().split("\n");
     if (lines.length < 2) return [];
-    const headers = lines[0].split(",").map(h => h.trim().replace(/"/g, ''));
+    // 따옴표 및 공백 제거 처리된 헤더 추출
+    const headers = lines[0].split(",").map(h => h.trim().replace(/["]/g, ""));
     return lines.slice(1).map(line => {
-      const values = line.split(",").map(v => v.trim().replace(/"/g, ''));
+      const values = line.split(",").map(v => v.trim().replace(/["]/g, ""));
       return headers.reduce((obj, h, i) => {
         obj[h] = values[i];
         return obj;
@@ -161,39 +155,51 @@
   }
 
   function renderAnalysis(storage) {
-    // 최다 빈도 분석
+    if (!storage.length) return;
+
+    // 10거래일(약 14일) 전 날짜 계산
+    const tenDaysAgo = new Date();
+    tenDaysAgo.setDate(tenDaysAgo.getDate() - 14);
+
+    const filtered = storage.filter(r => {
+      const d = new Date(r.Date);
+      return d >= tenDaysAgo;
+    });
+
     const counts = {};
-    storage.forEach(r => { if(r.Name) counts[r.Name] = (counts[r.Name] || 0) + 1; });
+    filtered.forEach(r => { if(r.Name) counts[r.Name] = (counts[r.Name] || 0) + 1; });
     const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 5);
     
     document.getElementById('topFreqList').innerHTML = sorted.map(([name, count]) => `
       <div class="rank-item"><span>${name}</span><span class="rank-count">${count}회 포착</span></div>
-    `).join('');
+    `).join('') || "최근 데이터 없음";
 
-    // 간단 통계
     document.getElementById('marketStats').innerHTML = `
       <div style="font-size:24px; font-weight:900; margin-top:10px;">
-        총 ${storage.length}건의 신호 축적
+        최근 10거래일 ${filtered.length}건
       </div>
-      <div class="muted" style="margin-top:5px;">데이터 기반 주도주 탐색 중</div>
+      <div class="muted" style="margin-top:5px;">전체 누적 데이터: ${storage.length}건</div>
     `;
   }
 
   function renderTable(data) {
     const tbody = document.getElementById('tbody');
+    // 시트 컬럼명과 매칭 (이미지 확인 결과: '현재가', '기록가', 'Turnover' 등)
     tbody.innerHTML = data.map(r => {
-      const rec = parseFloat(r.기록가) || 0;
-      const cur = parseFloat(r.현재가) || 0;
-      const profit = rec > 0 ? ((cur - rec) / rec * 100).toFixed(2) : "0.00";
-      const pClass = profit > 0 ? "profit-up" : (profit < 0 ? "profit-down" : "");
+      const rec = parseFloat(String(r["기록가"]).replace(/,/g, "")) || 0;
+      const cur = parseFloat(String(r["현재가"]).replace(/,/g, "")) || 0; // '현재가' 열 데이터 직접 참조
       
+      const profit = (rec > 0 && cur > 0) ? ((cur - rec) / rec * 100).toFixed(2) : "0.00";
+      const pClass = parseFloat(profit) > 0 ? "profit-up" : (parseFloat(profit) < 0 ? "profit-down" : "");
+      const pIcon = parseFloat(profit) > 0 ? "▲" : (parseFloat(profit) < 0 ? "▼" : "");
+
       return `
         <tr>
-          <td><b>${r.Name}</b> <br><span class="muted mono" style="font-size:11px;">${r.Code}</span></td>
+          <td><b>${r.Name || "미확인"}</b> <br><span class="muted mono" style="font-size:11px;">${r.Code || ""}</span></td>
           <td class="numRight mono">${Math.round(rec).toLocaleString()}</td>
-          <td class="numRight mono">${Math.round(cur).toLocaleString()}</td>
-          <td class="numRight mono ${pClass}">${profit > 0 ? '▲' : '▼'} ${Math.abs(profit)}%</td>
-          <td class="numRight mono">${Math.round(r.Turnover / 100000000)}억</td>
+          <td class="numRight mono">${cur > 0 ? Math.round(cur).toLocaleString() : "-"}</td>
+          <td class="numRight mono ${pClass}">${cur > 0 ? pIcon + ' ' + Math.abs(profit) + '%' : '연결 중'}</td>
+          <td class="numRight mono">${Math.round(parseFloat(r.Turnover) / 100000000) || 0}억</td>
           <td class="numRight">
             ${r.Trend === 'TRUE' ? '<span class="sig green">추세</span>' : ''}
             ${r.Pullback === 'TRUE' ? '<span class="sig yellow">눌림</span>' : ''}
@@ -205,6 +211,8 @@
   }
 
   fetchData();
+  // 1분마다 자동 새로고침
+  setInterval(fetchData, 60000);
 </script>
 </body>
 </html>
