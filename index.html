@@ -24,7 +24,7 @@
     :root{
       --bg:#0f172a; --panel:#111c33; --panel2:#0b1224;
       --line:#223053; --txt:#e5e7eb; --muted:#94a3b8;
-      --green:#22c55e; --yellow:#eab308; --red:#ef4444; --blue:#60a5fa;
+      --green:#22c55e; --yellow:#eab308; --red:#ef4444;
       --radius:14px; --tap: 44px;
     }
     *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
@@ -32,7 +32,7 @@
     body{
       margin:0; background:var(--bg); color:var(--txt);
       font-family: ui-sans-serif, system-ui, -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-      height: 100dvh; overflow:hidden;
+      height: 100dvh; overflow:hidden; /* 앱형 UI 유지 */
     }
 
     header{ padding-top: env(safe-area-inset-top); }
@@ -72,10 +72,27 @@
     .pill.err{ border-color: rgba(239,68,68,.45); color:#fecaca; background:rgba(239,68,68,.10);}
     .pill.warn{ border-color: rgba(234,179,8,.45); color:#fde68a; background:rgba(234,179,8,.10);}
 
-    .wrap{
+    /* ✅ 탭 */
+    .tabbar{
+      display:flex; gap:10px; padding:12px 14px;
+      background: rgba(255,255,255,.02);
+      border-bottom:1px solid var(--line);
+    }
+    .tabbtn{
+      border:1px solid var(--line); background:rgba(255,255,255,.03);
+      color:var(--txt); padding:10px 14px; border-radius:14px;
+      font-weight:900; cursor:pointer; display:flex; align-items:center; gap:10px;
+    }
+    .tabbtn.active{ outline:1px solid rgba(59,130,246,.55); background: rgba(59,130,246,.12); }
+    .tabbtn .muted{ font-weight:800; }
+
+    /* ✅ 전체 앱 레이아웃 */
+    .app{
       display:flex;
+      flex-direction:column;
       height: calc(100dvh - 58px - env(safe-area-inset-top));
-      min-height:0;
+      min-height:0;              /* ✅ iOS 스크롤 핵심 */
+      overflow:hidden;
     }
 
     /* settings panel */
@@ -97,12 +114,7 @@
       width:100%; padding:10px 12px; border-radius:12px;
       border:1px solid var(--line); background:var(--panel2); color:var(--txt); outline:none;
     }
-    select{
-      width:100%; padding:10px 12px; border-radius:12px;
-      border:1px solid var(--line); background:var(--panel2); color:var(--txt); outline:none;
-      appearance:none;
-    }
-    .grid2{ display:grid; grid-template-columns: 130px 1fr; gap:10px; align-items:center; }
+    .grid2{ display:grid; grid-template-columns: 110px 1fr; gap:10px; align-items:center; }
     @media (max-width: 520px){ .grid2{ grid-template-columns:1fr; } }
     .errorbox{
       display:flex; gap:10px; align-items:flex-start;
@@ -110,53 +122,51 @@
       padding:12px; border-radius:12px; color:#fecaca; font-size:12px;
     }
 
-    /* left / right */
+    /* ✅ 탭 페이지(포착/성과) */
+    .pageWrap{
+      flex:1;
+      min-height:0;           /* ✅ iOS 스크롤 핵심 */
+      overflow:hidden;
+      position:relative;
+    }
+    .page{
+      position:absolute; inset:0;
+      display:none;
+      min-height:0;
+    }
+    .page.active{ display:block; }
+
+    /* ✅ 포착 탭(기존 구조 유지) */
+    .wrap{
+      display:flex;
+      height: 100%;
+      min-height:0;
+    }
+
     .left{
       flex:1;
       display:flex; flex-direction:column;
       padding:14px; gap:14px;
       min-width:0;
+      min-height:0;          /* ✅ 중요 */
       overflow:hidden;
     }
     .right{
       width:380px; border-left:1px solid var(--line); background:var(--panel);
       padding:14px;
-      overflow:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
+      overflow:auto; -webkit-overflow-scrolling:touch;
+      overscroll-behavior:contain;
       display:none; min-height:0;
     }
     .right.open{ display:block; }
     @media (max-width:1024px){
       .right{
-        position:absolute; inset: calc(58px + env(safe-area-inset-top)) 0 0 0;
+        position:absolute; inset: 0;
         width:auto; z-index:55; display:none;
         border-left:none; border-top:1px solid var(--line);
         border-radius:16px 16px 0 0;
       }
       .right.open{ display:block; }
-    }
-
-    /* tabs */
-    .tabs{
-      display:flex; gap:8px; align-items:center; flex-wrap:wrap;
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.02);
-      padding:6px; border-radius:14px;
-      width: fit-content;
-    }
-    .tab{
-      border:1px solid transparent;
-      background: transparent;
-      color: var(--muted);
-      padding:8px 10px;
-      border-radius:12px;
-      font-weight:950;
-      cursor:pointer;
-      display:flex; align-items:center; gap:8px;
-    }
-    .tab.active{
-      color: var(--txt);
-      border-color: rgba(148,163,184,.35);
-      background: rgba(148,163,184,.08);
     }
 
     /* stat cards */
@@ -166,14 +176,17 @@
       gap:12px;
       min-height:0;
     }
-    @media (max-width: 980px){ .stats{ grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-    @media (max-width: 640px){ .stats{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 980px){
+      .stats{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px){
+      .stats{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
 
     .card{
       border:1px solid var(--line); background:var(--panel); border-radius:var(--radius);
       padding:12px; cursor:pointer; min-height:80px;
       transition: transform .05s ease, background .15s ease;
-      user-select:none;
     }
     .card:active{ transform: translateY(1px); }
     .card.active{ outline:1px solid rgba(148,163,184,.5); background: rgba(148,163,184,.08); }
@@ -186,34 +199,32 @@
       border:1px solid var(--line); background:rgba(255,255,255,.03); color:var(--muted);
     }
     .card .n{ font-size:22px; font-weight:950; margin-top:6px; }
-    .card .s{ margin-top:6px; font-size:12px; color:var(--muted); }
 
-    /* panel + table */
+    /* table panel */
     .panel{
       border:1px solid var(--line); background:var(--panel); border-radius:var(--radius);
       overflow:hidden; display:flex; flex-direction:column;
       min-height:0;
+      flex:1;                 /* ✅ 남은 공간을 꽉 채움 = 테이블 스크롤 활성 */
       box-shadow:0 12px 40px rgba(0,0,0,.20);
     }
     .panelHead{
       padding:12px 14px; border-bottom:1px solid var(--line);
       display:flex; align-items:center; justify-content:space-between; gap:10px;
       background: rgba(255,255,255,.02);
-      flex-wrap:wrap;
+      flex:0 0 auto;
     }
     .panelHead h2{ margin:0; font-size:14px; }
     .panelHead .count{
       font-size:12px; color:var(--muted);
       padding:3px 10px; border-radius:999px; border:1px solid var(--line); white-space:nowrap;
     }
-    .panelHead .controls{
-      display:flex; gap:8px; align-items:center; flex-wrap:wrap;
-    }
 
     .tableScroll{
       overflow:auto;
       -webkit-overflow-scrolling:touch;
       overscroll-behavior:contain;
+      touch-action: pan-y;     /* ✅ iOS 터치 스크롤 안정화 */
       flex:1; min-height:0;
     }
 
@@ -243,7 +254,12 @@
     .muted{ color:var(--muted); }
     .numRight{ text-align:right; }
     .center{ text-align:center; }
-    td.nameCell{ max-width: 44vw; overflow:hidden; text-overflow: ellipsis; }
+
+    td.nameCell{
+      max-width: 44vw;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
 
     .selectDot{
       width:18px; height:18px;
@@ -251,31 +267,16 @@
       display:inline-block; background:transparent; vertical-align:middle;
     }
     .selectDot.on{ background: var(--yellow); border-color: var(--yellow); }
-    .selectHit{ display:inline-flex; align-items:center; justify-content:center; width:var(--tap); height:var(--tap); border-radius:12px; }
+    .selectHit{
+      display:inline-flex; align-items:center; justify-content:center;
+      width:var(--tap); height:var(--tap); border-radius:12px;
+    }
 
     .sigWrap{ display:flex; gap:6px; justify-content:center; flex-wrap:wrap; }
     .sig{ font-size:10px; padding:2px 8px; border-radius:999px; border:1px solid; font-weight:900; line-height:1.4; }
     .sig.red{ color:#fecaca; background:rgba(239,68,68,.15); border-color:rgba(239,68,68,.30); }
     .sig.yellow{ color:#fde68a; background:rgba(234,179,8,.15); border-color:rgba(234,179,8,.30); }
     .sig.green{ color:#bbf7d0; background:rgba(34,197,94,.15); border-color:rgba(34,197,94,.30); }
-    .sig.blue{ color:#bfdbfe; background:rgba(96,165,250,.15); border-color:rgba(96,165,250,.30); }
-
-    /* performance chips */
-    .chip{
-      display:inline-flex; align-items:center; gap:6px;
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.03);
-      padding:8px 10px;
-      border-radius:12px;
-      font-size:12px;
-      color: var(--muted);
-      white-space:nowrap;
-    }
-    .chip b{ color: var(--txt); }
-    .kpiRow{
-      display:flex; gap:10px; flex-wrap:wrap;
-      padding:0 2px;
-    }
 
     /* right detail */
     .detailTop{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
@@ -309,14 +310,68 @@
     }
     @keyframes spin{ to { transform: rotate(360deg);} }
 
-    /* ✅ Landscape: 상단카드 1줄 + 가로 스와이프 */
+    /* ✅ 성과 탭: "페이지 전체 스크롤" + 하부 리스트 별도 스크롤 */
+    .perfPage{
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      min-height:0;
+      overflow:auto;                 /* ✅ 페이지 전체 스크롤 */
+      -webkit-overflow-scrolling:touch;
+      overscroll-behavior:contain;
+      padding:14px;
+      gap:14px;
+    }
+    .perfTop{
+      display:flex; gap:10px; flex-wrap:wrap;
+    }
+    .miniPill{
+      border:1px solid var(--line); background:rgba(255,255,255,.03);
+      padding:10px 12px; border-radius:999px; font-size:13px; font-weight:900;
+    }
+    .perfGrid{
+      display:grid; gap:12px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    @media (min-width: 900px){
+      .perfGrid{ grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+    .perfCard{
+      border:1px solid var(--line); background:var(--panel); border-radius:var(--radius);
+      padding:14px; min-height:96px;
+      display:flex; flex-direction:column; justify-content:space-between;
+    }
+    .perfCard .h{ display:flex; align-items:center; justify-content:space-between; color:var(--muted); font-size:12px; font-weight:900; }
+    .perfCard .v{ font-size:26px; font-weight:950; margin-top:6px; }
+
+    .perfPanel{
+      border:1px solid var(--line); background:var(--panel); border-radius:var(--radius);
+      overflow:hidden;
+      display:flex; flex-direction:column;
+      min-height:420px; /* ✅ 아이폰에서도 영역 확보 */
+    }
+    .perfPanelHead{
+      padding:12px 14px; border-bottom:1px solid var(--line);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      background: rgba(255,255,255,.02);
+    }
+    .perfPanelHead h2{ margin:0; font-size:14px; }
+    .perfTableScroll{
+      flex:1; min-height:0;
+      overflow:auto; -webkit-overflow-scrolling:touch;
+      overscroll-behavior:contain;
+      touch-action: pan-y;
+    }
+
+    /* ✅ iOS Landscape 개선 */
     @media (orientation: landscape) and (max-height: 520px){
       header{ padding: 8px 12px; }
       h1{ font-size:16px; }
       .sub{ display:none; }
 
-      .wrap{ height: calc(100dvh - 50px - env(safe-area-inset-top)); }
-      .left{ padding:10px; gap:10px; }
+      .app{
+        height: calc(100dvh - 50px - env(safe-area-inset-top));
+      }
 
       .stats{
         display:flex;
@@ -326,21 +381,14 @@
         -webkit-overflow-scrolling:touch;
         overscroll-behavior-x:contain;
         padding-bottom:6px;
-        scroll-snap-type: x proximity;
       }
       .card{
         flex: 0 0 240px;
         min-height: 64px;
         padding:10px;
-        scroll-snap-align: start;
       }
       .card .n{ font-size:18px; margin-top:4px; }
       .badgeIcon{ width:28px; height:28px; border-radius:12px; }
-
-      .panelHead{ padding:10px 12px; }
-      .panelHead h2{ font-size:13px; }
-      .panel{ min-height:0; }
-      .tableScroll{ flex:1 1 auto; min-height:0; max-height:none; }
     }
   </style>
 </head>
@@ -378,22 +426,17 @@
       <input id="urlPULLBACK" type="text">
       <label><b style="color:#fecaca;">BREAKOUT</b></label>
       <input id="urlBREAKOUT" type="text">
-      <label><b style="color:#bfdbfe;">STORAGE</b></label>
+      <label><b style="color:#c7d2fe;">STORAGE</b></label>
       <input id="urlSTORAGE" type="text">
     </div>
 
     <div class="row" style="justify-content:space-between;">
-      <div class="chip">
-        성과 탭 기간
-        <b>
-          <select id="perfWindowSel" style="width:auto; margin-left:8px;">
-            <option value="5">최근 5거래일</option>
-            <option value="10" selected>최근 10거래일</option>
-            <option value="20">최근 20거래일</option>
-          </select>
-        </b>
+      <div class="pill">성과 탭 기간: <b id="perfDaysLabel">10</b> 거래일</div>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <button class="btn" id="daysMinusBtn">-</button>
+        <button class="btn" id="daysPlusBtn">+</button>
+        <button class="btn primary" id="saveAndRefreshBtn">URL 저장 및 새로고침</button>
       </div>
-      <button class="btn primary" id="saveAndRefreshBtn">URL 저장 및 새로고침</button>
     </div>
 
     <div class="errorbox" id="errorBox" style="display:none;">
@@ -408,209 +451,195 @@
   </div>
 </div>
 
-<div class="wrap">
-  <div class="left" id="leftPane">
+<div class="app">
+  <div class="tabbar">
+    <button class="tabbtn active" id="tabCatch"><span>🔎</span> 포착 <span class="muted">Screen</span></button>
+    <button class="tabbtn" id="tabPerf"><span>📊</span> 성과 <span class="muted">Perf</span></button>
+  </div>
 
-    <!-- Tabs -->
-    <div class="row" style="justify-content:space-between;">
-      <div class="tabs">
-        <button class="tab active" id="tabScreener">🔎 포착</button>
-        <button class="tab" id="tabPerformance">📊 성과</button>
-      </div>
-      <div class="kpiRow" id="perfKpis" style="display:none;"></div>
-    </div>
+  <div class="pageWrap">
+    <!-- =========================
+         포착 탭 (기존)
+    ========================== -->
+    <div class="page active" id="pageCatch">
+      <div class="wrap">
+        <div class="left" id="leftPane">
+          <div class="stats">
+            <div class="card active" data-filter="ALL">
+              <div class="t"><span>전체 포착</span><span class="badgeIcon">🔎</span></div>
+              <div class="n" id="statTotal">-</div>
+            </div>
 
-    <!-- ============ SCREENER VIEW ============ -->
-    <div id="viewScreener">
-      <div class="stats">
-        <div class="card active" data-filter="ALL">
-          <div class="t"><span>전체 포착</span><span class="badgeIcon">🔎</span></div>
-          <div class="n" id="statTotal">-</div>
-        </div>
+            <div class="card" data-filter="TREND">
+              <div class="t"><span>추세 추종</span><span class="badgeIcon" style="border-color:rgba(34,197,94,.35); color:#bbf7d0;">📈</span></div>
+              <div class="n" id="statTrend">-</div>
+            </div>
 
-        <div class="card" data-filter="TREND">
-          <div class="t"><span>추세 추종</span><span class="badgeIcon" style="border-color:rgba(34,197,94,.35); color:#bbf7d0;">📈</span></div>
-          <div class="n" id="statTrend">-</div>
-        </div>
+            <div class="card" data-filter="PULLBACK">
+              <div class="t"><span>눌림목</span><span class="badgeIcon" style="border-color:rgba(234,179,8,.35); color:#fde68a;">🟡</span></div>
+              <div class="n" id="statPullback">-</div>
+            </div>
 
-        <div class="card" data-filter="PULLBACK">
-          <div class="t"><span>눌림목</span><span class="badgeIcon" style="border-color:rgba(234,179,8,.35); color:#fde68a;">🟡</span></div>
-          <div class="n" id="statPullback">-</div>
-        </div>
+            <div class="card" data-filter="BREAKOUT">
+              <div class="t"><span>박스권 돌파</span><span class="badgeIcon" style="border-color:rgba(239,68,68,.35); color:#fecaca;">🚀</span></div>
+              <div class="n" id="statBreakout">-</div>
+            </div>
 
-        <div class="card" data-filter="BREAKOUT">
-          <div class="t"><span>박스권 돌파</span><span class="badgeIcon" style="border-color:rgba(239,68,68,.35); color:#fecaca;">🚀</span></div>
-          <div class="n" id="statBreakout">-</div>
-        </div>
-
-        <div class="card" data-filter="FAV">
-          <div class="t"><span>찜 목록</span><span class="badgeIcon" style="border-color:rgba(234,179,8,.35); color:#fde68a;">⭐</span></div>
-          <div class="n" id="statFav">0</div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panelHead">
-          <h2>검출 종목 리스트 (<span id="filterLabel">ALL</span>)</h2>
-          <div class="count"><span id="rowCount">0</span>건</div>
-        </div>
-
-        <div class="tableScroll">
-          <table>
-            <thead>
-              <tr>
-                <th>종목코드</th>
-                <th>종목명</th>
-                <th class="center">선택</th>
-                <th class="numRight" style="display:none;" id="thClose">현재가</th>
-                <th class="numRight">거래대금</th>
-                <th class="center" style="display:none;" id="thRSI">RSI</th>
-                <th class="center" style="display:none;" id="thStoch">STOCH K</th>
-                <th class="center">Signal</th>
-              </tr>
-            </thead>
-            <tbody id="tbody">
-              <tr><td colspan="8" class="center muted" style="padding:28px;">데이터 로딩 중...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ============ PERFORMANCE VIEW ============ -->
-    <div id="viewPerformance" style="display:none;">
-      <div class="stats" id="perfCards">
-        <div class="card active" data-perf="SCOREBOARD">
-          <div class="t"><span>신뢰도 보드</span><span class="badgeIcon" style="border-color:rgba(96,165,250,.35); color:#bfdbfe;">🧠</span></div>
-          <div class="n" id="perfCardTitle">Score</div>
-          <div class="s muted" id="perfCardSub">최근 N거래일 기준</div>
-        </div>
-        <div class="card" data-perf="TOP">
-          <div class="t"><span>TOP 성과</span><span class="badgeIcon" style="border-color:rgba(34,197,94,.35); color:#bbf7d0;">🏆</span></div>
-          <div class="n">Top</div>
-          <div class="s muted">Return / Dn 기준</div>
-        </div>
-        <div class="card" data-perf="BOTTOM">
-          <div class="t"><span>Worst 성과</span><span class="badgeIcon" style="border-color:rgba(239,68,68,.35); color:#fecaca;">🧯</span></div>
-          <div class="n">Worst</div>
-          <div class="s muted">리스크 확인</div>
-        </div>
-        <div class="card" data-perf="HITS">
-          <div class="t"><span>종목 히스토리</span><span class="badgeIcon" style="border-color:rgba(234,179,8,.35); color:#fde68a;">🗂️</span></div>
-          <div class="n">History</div>
-          <div class="s muted">중복포착 확인</div>
-        </div>
-        <div class="card" data-perf="INFO">
-          <div class="t"><span>설명</span><span class="badgeIcon">ℹ️</span></div>
-          <div class="n">How</div>
-          <div class="s muted">점수 산식</div>
-        </div>
-      </div>
-
-      <div class="panel" style="margin-top:14px;">
-        <div class="panelHead">
-          <h2 id="perfTitle">신호 신뢰도 보드</h2>
-          <div class="controls">
-            <span class="chip">기간 <b id="perfWindowTxt">10</b>거래일</span>
-            <span class="chip">정렬
-              <b>
-                <select id="perfSortSel" style="width:auto; margin-left:8px;">
-                  <option value="SCORE" selected>Score</option>
-                  <option value="WIN">승률</option>
-                  <option value="N">표본수</option>
-                  <option value="D1">D1</option>
-                  <option value="D3">D3</option>
-                  <option value="D5">D5</option>
-                  <option value="D7">D7</option>
-                  <option value="D9">D9</option>
-                  <option value="RET">Return</option>
-                </select>
-              </b>
-            </span>
-
-            <span class="chip">Signal_Type
-              <b>
-                <select id="perfTypeSel" style="width:auto; margin-left:8px;">
-                  <option value="ALL" selected>전체</option>
-                  <option value="Trend">Trend</option>
-                  <option value="Pullback">Pullback</option>
-                  <option value="Breakout">Breakout</option>
-                  <option value="Trend+Pullback">Trend+Pullback</option>
-                  <option value="Trend+Breakout">Trend+Breakout</option>
-                  <option value="Pullback+Breakout">Pullback+Breakout</option>
-                  <option value="Trend+Pullback+Breakout">Trend+Pullback+Breakout</option>
-                </select>
-              </b>
-            </span>
+            <div class="card" data-filter="FAV">
+              <div class="t"><span>찜 목록</span><span class="badgeIcon" style="border-color:rgba(234,179,8,.35); color:#fde68a;">⭐</span></div>
+              <div class="n" id="statFav">0</div>
+            </div>
           </div>
-          <div class="count"><span id="perfRowCount">0</span>건</div>
+
+          <div class="panel">
+            <div class="panelHead">
+              <h2>검출 종목 리스트 (<span id="filterLabel">ALL</span>)</h2>
+              <div class="count"><span id="rowCount">0</span>건</div>
+            </div>
+
+            <div class="tableScroll" id="catchTableScroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>종목코드</th>
+                    <th>종목명</th>
+                    <th class="center">선택</th>
+                    <th class="numRight" style="display:none;" id="thClose">현재가</th>
+                    <th class="numRight">거래대금</th>
+                    <th class="center" style="display:none;" id="thRSI">RSI</th>
+                    <th class="center" style="display:none;" id="thStoch">STOCH K</th>
+                    <th class="center">Signal</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody">
+                  <tr><td colspan="8" class="center muted" style="padding:28px;">데이터 로딩 중...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
-        <div class="tableScroll">
-          <table>
-            <thead id="perfThead"></thead>
-            <tbody id="perfTbody">
-              <tr><td class="center muted" style="padding:28px;">Storage 데이터 로딩 대기중...</td></tr>
-            </tbody>
-          </table>
+        <aside class="right" id="rightPane">
+          <div class="detailTop">
+            <div>
+              <div class="muted" id="detailMeta">-</div>
+              <div class="detailH" id="detailName">-</div>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <span class="live">Live Data</span>
+              <button class="closeBtn" id="detailCloseBtn" title="닫기">✕</button>
+            </div>
+          </div>
+
+          <div class="boxGrid">
+            <div class="box">
+              <div class="l">현재가</div>
+              <div class="v"><span id="detailClose">-</span> <span class="muted" style="font-size:12px;">원</span></div>
+            </div>
+            <div class="box">
+              <div class="l">RSI (14)</div>
+              <div class="v" id="detailRSI">-</div>
+            </div>
+            <div class="box">
+              <div class="l">Stoch K</div>
+              <div class="v" id="detailStoch">-</div>
+            </div>
+            <div class="box">
+              <div class="l">거래량</div>
+              <div class="v" id="detailVol">-</div>
+            </div>
+          </div>
+
+          <div class="analysis">
+            <h3>⚠️ 포착 신호 분석</h3>
+            <ul id="detailSignals"></ul>
+            <div class="foot" id="detailFoot">-</div>
+          </div>
+
+          <div class="analysis" style="margin-top:12px;">
+            <h3>📈 실시간 차트</h3>
+            <iframe
+              id="tvFrame"
+              style="width:100%; height:240px; border:0; border-radius:10px;"
+              loading="lazy"
+              allowfullscreen
+            ></iframe>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- =========================
+         성과 탭 (스크롤 2단)
+    ========================== -->
+    <div class="page" id="pagePerf">
+      <div class="perfPage" id="perfScroll">
+        <div class="perfTop">
+          <div class="miniPill">최근 <b id="perfDaysPill">10</b> 거래일</div>
+          <div class="miniPill">표본 <b id="perfSample">0</b></div>
+          <div class="miniPill">평균 <b id="perfAvg">0.00%</b></div>
+          <div class="miniPill">중앙값 <b id="perfMed">0.00%</b></div>
+          <div class="miniPill">승률 <b id="perfWin">0.0%</b></div>
+        </div>
+
+        <div class="perfGrid">
+          <div class="perfCard">
+            <div class="h"><span>신뢰도 보드</span><span>🧠</span></div>
+            <div class="v">Score</div>
+            <div class="muted" style="font-size:12px;">최근 N거래일 기준</div>
+          </div>
+          <div class="perfCard">
+            <div class="h"><span>TOP 성과</span><span>🏆</span></div>
+            <div class="v" id="perfTop">-</div>
+            <div class="muted" style="font-size:12px;">Return / Dn 기준</div>
+          </div>
+          <div class="perfCard">
+            <div class="h"><span>Worst 성과</span><span>🧯</span></div>
+            <div class="v" id="perfWorst">-</div>
+            <div class="muted" style="font-size:12px;">리스크 확인</div>
+          </div>
+          <div class="perfCard" id="howCard" style="cursor:pointer;">
+            <div class="h"><span>설명</span><span>ℹ️</span></div>
+            <div class="v">How</div>
+            <div class="muted" style="font-size:12px;">점수 산식</div>
+          </div>
+        </div>
+
+        <div class="perfPanel">
+          <div class="perfPanelHead">
+            <h2>성과 리스트 (Storage)</h2>
+            <div class="count"><span id="perfRowCount">0</span>건</div>
+          </div>
+          <div class="perfTableScroll" id="perfTableScroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>DetectDate</th>
+                  <th>Code</th>
+                  <th>Name</th>
+                  <th>Signal_Type</th>
+                  <th class="numRight">Entry</th>
+                  <th class="numRight">D1</th>
+                  <th class="numRight">D3</th>
+                  <th class="numRight">D5</th>
+                  <th class="numRight">D7</th>
+                  <th class="numRight">D9</th>
+                </tr>
+              </thead>
+              <tbody id="perfTbody">
+                <tr><td colspan="10" class="center muted" style="padding:28px;">Storage 로딩 중...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="muted" style="font-size:12px; padding-bottom: env(safe-area-inset-bottom);">
+          * 성과탭은 전체 스크롤 가능, 하단 테이블도 별도 스크롤 가능하게 구성됨
         </div>
       </div>
     </div>
 
   </div>
-
-  <aside class="right" id="rightPane">
-    <div class="detailTop">
-      <div>
-        <div class="muted" id="detailMeta">-</div>
-        <div class="detailH" id="detailName">-</div>
-      </div>
-      <div style="display:flex; gap:8px; align-items:center;">
-        <span class="live">Live Data</span>
-        <button class="closeBtn" id="detailCloseBtn" title="닫기">✕</button>
-      </div>
-    </div>
-
-    <div class="boxGrid">
-      <div class="box">
-        <div class="l">현재가</div>
-        <div class="v"><span id="detailClose">-</span> <span class="muted" style="font-size:12px;">원</span></div>
-      </div>
-      <div class="box">
-        <div class="l">RSI (14)</div>
-        <div class="v" id="detailRSI">-</div>
-      </div>
-      <div class="box">
-        <div class="l">Stoch K</div>
-        <div class="v" id="detailStoch">-</div>
-      </div>
-      <div class="box">
-        <div class="l">거래량</div>
-        <div class="v" id="detailVol">-</div>
-      </div>
-    </div>
-
-    <div class="analysis" id="detailAnalysisBox">
-      <h3>⚠️ 포착 신호 분석</h3>
-      <ul id="detailSignals"></ul>
-      <div class="foot" id="detailFoot">-</div>
-    </div>
-
-    <div class="analysis" style="margin-top:12px;">
-      <h3>📈 실시간 차트</h3>
-      <iframe
-        id="tvFrame"
-        style="width:100%; height:240px; border:0; border-radius:10px;"
-        loading="lazy"
-        allowfullscreen
-      ></iframe>
-    </div>
-
-    <div class="analysis" id="perfDetailBox" style="display:none; margin-top:12px;">
-      <h3>📌 성과 히스토리 (최근 N거래일)</h3>
-      <div id="perfDetailBody" class="muted" style="font-size:13px;"></div>
-    </div>
-  </aside>
 </div>
 
 <script>
@@ -626,23 +655,19 @@ const initialUrls = {
 };
 
 const LS_KEY = "quant_screener_urls_v4";
-const FAV_KEY = "quant_screener_favs_v1";
-const PERF_KEY = "quant_screener_perf_v1";
+const FAV_KEY = "quant_screener_favs_v2";
+const PERF_DAYS_KEY = "quant_screener_perf_days_v1";
 
 let sheetUrls = loadUrls();
-let perfWindow = loadPerfWindow(); // 5/10/20
-let perfMode = "SCOREBOARD"; // SCOREBOARD/TOP/BOTTOM/HITS/INFO
-
 let data = [];
 let filterType = "ALL";
 let detailStock = null;
 
-let storageRows = [];         // raw storage rows
-let storageFiltered = [];     // filtered by last N trading days
-let perfSelectedCode = null;  // for history
-
-// 찜
+// ✅ 찜 목록 (로컬)
 let selectedCodes = loadFavs();
+
+// ✅ 성과 기간 (거래일)
+let perfDays = loadPerfDays();
 
 const $ = (id) => document.getElementById(id);
 const settingsPanel = $("settingsPanel");
@@ -650,13 +675,6 @@ const statusPill = $("statusPill");
 const lastUpdatedPill = $("lastUpdatedPill");
 const tbody = $("tbody");
 const rightPane = $("rightPane");
-
-// Views
-const viewScreener = $("viewScreener");
-const viewPerformance = $("viewPerformance");
-const perfKpis = $("perfKpis");
-const perfTbody = $("perfTbody");
-const perfThead = $("perfThead");
 
 function setStatus(type, msg){
   statusPill.classList.remove("ok","warn","err");
@@ -671,14 +689,7 @@ function hideError(){
   $("errorBox").style.display = "none";
   $("errorMsg").textContent = "";
 }
-
 function fmt(n){ return new Intl.NumberFormat("ko-KR").format(n); }
-function fmtPct(x){
-  const v = Number(x);
-  if(!Number.isFinite(v)) return "-";
-  const sign = v > 0 ? "+" : "";
-  return sign + (v*100).toFixed(2) + "%";
-}
 function toNum(v){
   if(v === null || v === undefined) return 0;
   const s = String(v).replaceAll(",","").trim();
@@ -697,21 +708,6 @@ function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, s => ({
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
   }[s]));
-}
-
-function parseDateStr(s){
-  const t = String(s ?? "").trim();
-  // expect YYYY-MM-DD
-  const m = t.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if(!m) return null;
-  const d = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
-  return isNaN(d.getTime()) ? null : d;
-}
-function ymd(d){
-  const yy = d.getFullYear();
-  const mm = String(d.getMonth()+1).padStart(2,"0");
-  const dd = String(d.getDate()).padStart(2,"0");
-  return `${yy}-${mm}-${dd}`;
 }
 
 /** CSV robust parser */
@@ -747,9 +743,6 @@ function toBool(v){
   return (s === "true" || s === "1" || s === "y" || s === "yes" || s === "t");
 }
 
-/* =========================
-   Screener parsing
-   ========================= */
 function parseAllSheet(text){
   const rows = parseCSVRows(text).filter(r => r.some(x => String(x).trim() !== ""));
   if(rows.length < 2) return [];
@@ -804,9 +797,7 @@ function parseSignalSheetToSet(text){
   return set;
 }
 
-/* =========================
-   Storage parsing
-   ========================= */
+/** ✅ Storage parser */
 function parseStorageSheet(text){
   const rows = parseCSVRows(text).filter(r => r.some(x => String(x).trim() !== ""));
   if(rows.length < 2) return [];
@@ -814,57 +805,59 @@ function parseStorageSheet(text){
   const headers = rows[0].map(h => String(h).trim());
   const idx = (name) => headers.findIndex(h => h === name);
 
+  const iDetect = idx("DetectDate");
   const iCode = idx("Code");
   if(iCode < 0) return [];
 
   const iName = idx("Name");
-  const iMarket = idx("Market");
-  const iDetect = idx("DetectDate");
-  const iType = idx("Signal_Type");
+  const iSigType = idx("Signal_Type");
   const iEntry = idx("EntryPrice");
-  const iCloseToday = idx("Close_Today");
-  const iReturn = idx("Return");
   const iD1 = idx("D1"), iD3 = idx("D3"), iD5 = idx("D5"), iD7 = idx("D7"), iD9 = idx("D9");
-  const iPriceType = idx("Price_Type"); // 있으면 읽고, 없어도 됨
 
   const out = [];
   for(const r of rows.slice(1)){
     const code = pad6(r[iCode]);
     if(!/^\d{6}$/.test(code)) continue;
-
-    const detect = iDetect >= 0 ? String(r[iDetect] ?? "").trim() : "";
-    const dt = parseDateStr(detect);
-    if(!dt) continue;
-
     out.push({
+      DetectDate: iDetect >= 0 ? String(r[iDetect] ?? "").trim() : "",
       Code: code,
-      Name: iName>=0 ? String(r[iName] ?? "").trim() : "",
-      Market: iMarket>=0 ? String(r[iMarket] ?? "").trim() : "",
-      DetectDate: ymd(dt),
-      Signal_Type: iType>=0 ? String(r[iType] ?? "").trim() : "",
-      EntryPrice: iEntry>=0 ? toNum(r[iEntry]) : 0,
-      Close_Today: iCloseToday>=0 ? toNum(r[iCloseToday]) : 0,
-      Return: iReturn>=0 ? toNum(r[iReturn]) : NaN,
-      D1: iD1>=0 ? toNum(r[iD1]) : NaN,
-      D3: iD3>=0 ? toNum(r[iD3]) : NaN,
-      D5: iD5>=0 ? toNum(r[iD5]) : NaN,
-      D7: iD7>=0 ? toNum(r[iD7]) : NaN,
-      D9: iD9>=0 ? toNum(r[iD9]) : NaN,
-      Price_Type: iPriceType>=0 ? String(r[iPriceType] ?? "").trim() : ""
+      Name: iName >= 0 ? String(r[iName] ?? "").trim() : "",
+      Signal_Type: iSigType >= 0 ? String(r[iSigType] ?? "").trim() : "",
+      EntryPrice: iEntry >= 0 ? toNum(r[iEntry]) : 0,
+      D1: iD1 >= 0 ? toNum(r[iD1]) : NaN,
+      D3: iD3 >= 0 ? toNum(r[iD3]) : NaN,
+      D5: iD5 >= 0 ? toNum(r[iD5]) : NaN,
+      D7: iD7 >= 0 ? toNum(r[iD7]) : NaN,
+      D9: iD9 >= 0 ? toNum(r[iD9]) : NaN,
     });
   }
   return out;
 }
 
-/* =========================
-   FAV persistence
-   ========================= */
+/** ✅ Perf days */
+function loadPerfDays(){
+  const raw = localStorage.getItem(PERF_DAYS_KEY);
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 5 && n <= 60 ? n : 10;
+}
+function savePerfDays(){
+  localStorage.setItem(PERF_DAYS_KEY, String(perfDays));
+  $("perfDaysLabel").textContent = String(perfDays);
+  $("perfDaysPill").textContent = String(perfDays);
+}
+
+/** FAV persistence */
 function loadFavs(){
   try{
     const raw = localStorage.getItem(FAV_KEY);
     if(!raw) return new Set();
     const arr = JSON.parse(raw);
-    return new Set((Array.isArray(arr) ? arr : []).map(pad6).filter(x => /^\d{6}$/.test(x)));
+    const set = new Set((Array.isArray(arr) ? arr : [])
+      .map(pad6)
+      .filter(x => /^\d{6}$/.test(x))
+      .filter(x => x !== "000000")   // ✅ 유령 찜 방지
+    );
+    return set;
   }catch{
     return new Set();
   }
@@ -873,61 +866,27 @@ function saveFavs(){
   localStorage.setItem(FAV_KEY, JSON.stringify(Array.from(selectedCodes)));
   $("statFav").textContent = String(selectedCodes.size);
 }
-
-/* =========================
-   URLs + perf window persistence
-   ========================= */
-function loadUrls(){
-  try{
-    const raw = localStorage.getItem(LS_KEY);
-    if(!raw) return {...initialUrls};
-    const obj = JSON.parse(raw);
-    return { ...initialUrls, ...obj };
-  }catch{
-    return {...initialUrls};
-  }
-}
-function saveUrls(){
-  localStorage.setItem(LS_KEY, JSON.stringify(sheetUrls));
+function reconcileFavsWithData(){
+  // ✅ 현재 로딩된 종목 코드에 존재하는 찜만 유지 (아이패드에서 '1' 유령 제거)
+  const codeSet = new Set(data.map(d => d.Code));
+  selectedCodes = new Set(Array.from(selectedCodes).filter(c => codeSet.has(c)));
+  saveFavs();
 }
 
-function loadPerfWindow(){
-  try{
-    const raw = localStorage.getItem(PERF_KEY);
-    if(!raw) return 10;
-    const obj = JSON.parse(raw);
-    const w = Number(obj?.window);
-    return [5,10,20].includes(w) ? w : 10;
-  }catch{
-    return 10;
-  }
-}
-function savePerfWindow(){
-  localStorage.setItem(PERF_KEY, JSON.stringify({ window: perfWindow }));
-}
-
-/* =========================
-   HTTP fetch
-   ========================= */
 async function fetchText(url){
   const res = await fetch(bust(url), { cache:"no-store" });
   if(!res.ok) throw new Error(`HTTP ${res.status}`);
   return await res.text();
 }
 
-/* =========================
-   Screener rendering
-   ========================= */
-function updateStats(){
-  $("statTotal").textContent = fmt(data.length);
-  $("statTrend").textContent = fmt(data.filter(x=>x.Trend_Signal).length);
-  $("statPullback").textContent = fmt(data.filter(x=>x.Pullback_Signal).length);
-  $("statBreakout").textContent = fmt(data.filter(x=>x.Breakout_Signal).length);
-  $("statFav").textContent = String(selectedCodes.size);
-}
+/** ====== UI helpers ====== */
 function renderEmpty(msg){
   tbody.innerHTML = `<tr><td colspan="8" class="center muted" style="padding:28px;">${escapeHtml(msg)}</td></tr>`;
   $("rowCount").textContent = "0";
+}
+function fmtPct(x){
+  if(!Number.isFinite(x)) return "-";
+  return (x*100).toFixed(2) + "%";
 }
 function rsiColor(v){
   const x = Number(v)||0;
@@ -941,6 +900,17 @@ function stochColor(v){
   if(x >= 80) return "#fb7185";
   return "#94a3b8";
 }
+
+/** =========================
+ *  포착 탭 렌더
+ *  ========================= */
+function updateStats(){
+  $("statTotal").textContent = fmt(data.length);
+  $("statTrend").textContent = fmt(data.filter(x=>x.Trend_Signal).length);
+  $("statPullback").textContent = fmt(data.filter(x=>x.Pullback_Signal).length);
+  $("statBreakout").textContent = fmt(data.filter(x=>x.Breakout_Signal).length);
+  $("statFav").textContent = String(selectedCodes.size);
+}
 function getFiltered(){
   if(filterType === "TREND") return data.filter(x => x.Trend_Signal);
   if(filterType === "PULLBACK") return data.filter(x => x.Pullback_Signal);
@@ -948,6 +918,7 @@ function getFiltered(){
   if(filterType === "FAV") return data.filter(x => selectedCodes.has(x.Code));
   return data;
 }
+
 function renderTable(){
   const rows = getFiltered();
   $("filterLabel").textContent = filterType;
@@ -1012,8 +983,6 @@ function renderTable(){
 function openDetail(stock){
   detailStock = stock;
 
-  $("perfDetailBox").style.display = "none"; // screener detail
-  $("detailAnalysisBox").style.display = "block";
   $("detailMeta").textContent = `${stock.Market || "-"} | ${stock.Code}`;
   $("detailName").textContent = stock.Name || "-";
   $("detailClose").textContent = fmt(Math.round(toNum(stock.Close)));
@@ -1047,7 +1016,6 @@ function openDetail(stock){
 function closeDetail(){
   rightPane.classList.remove("open");
   detailStock = null;
-  perfSelectedCode = null;
 }
 function toggleDetailByCode(code){
   const stock = data.find(x => x.Code === code);
@@ -1055,6 +1023,7 @@ function toggleDetailByCode(code){
   if(detailStock && detailStock.Code === code) closeDetail();
   else openDetail(stock);
 }
+
 function toggleSelect(code){
   if(selectedCodes.has(code)) selectedCodes.delete(code);
   else selectedCodes.add(code);
@@ -1062,463 +1031,120 @@ function toggleSelect(code){
   renderTable();
 }
 
-/* =========================
-   Performance computations
-   ========================= */
-function lastNTradingDaysFromStorage(rows, n){
-  const dates = Array.from(new Set(rows.map(r => r.DetectDate))).filter(Boolean);
-  dates.sort((a,b)=> (a<b?1:-1)); // desc
-  return dates.slice(0, n);
+/** =========================
+ *  성과 탭 렌더
+ *  ========================= */
+function pctCell(x){
+  if(!NumberNumber(x)) return `<span class="muted">-</span>`;
+  const v = x;
+  const color = v >= 0 ? "#a7f3d0" : "#fecaca";
+  return `<span style="color:${color}; font-weight:950;">${(v*100).toFixed(2)}%</span>`;
 }
-function filterStorageWindow(){
-  if(!storageRows.length){
-    storageFiltered = [];
+function isFiniteNumber(x){ return Number.isFinite(x); }
+function perfPickReturn(row){
+  // 최근 N거래일 기준 집계를 위해: D9> D7> D5> D3> D1 순으로 "가장 먼 것"이 있으면 사용
+  const order = ["D9","D7","D5","D3","D1"];
+  for(const k of order){
+    const v = Number(row[k]);
+    if(Number.isFinite(v)) return v;
+  }
+  return NaN;
+}
+function renderPerf(storageRows){
+  const body = $("perfTbody");
+  if(!storageRows || !storageRows.length){
+    body.innerHTML = `<tr><td colspan="10" class="center muted" style="padding:28px;">Storage 데이터 없음 (설정 ⚙️ → STORAGE URL 확인)</td></tr>`;
+    $("perfRowCount").textContent = "0";
+    $("perfSample").textContent = "0";
+    $("perfAvg").textContent = "0.00%";
+    $("perfMed").textContent = "0.00%";
+    $("perfWin").textContent = "0.0%";
+    $("perfTop").textContent = "-";
+    $("perfWorst").textContent = "-";
     return;
   }
-  const dates = lastNTradingDaysFromStorage(storageRows, perfWindow);
-  const dateSet = new Set(dates);
-  storageFiltered = storageRows.filter(r => dateSet.has(r.DetectDate));
-}
 
-function median(arr){
-  const a = arr.filter(x=>Number.isFinite(x)).slice().sort((x,y)=>x-y);
-  if(!a.length) return NaN;
-  const mid = Math.floor(a.length/2);
-  return a.length%2 ? a[mid] : (a[mid-1]+a[mid])/2;
-}
-function avg(arr){
-  const a = arr.filter(x=>Number.isFinite(x));
-  if(!a.length) return NaN;
-  return a.reduce((s,v)=>s+v,0)/a.length;
-}
-function winRate(arr){
-  const a = arr.filter(x=>Number.isFinite(x));
-  if(!a.length) return NaN;
-  const w = a.filter(x=>x>0).length;
-  return w/a.length;
-}
-function scoreForGroup(rows){
-  // Score = 0.40*Avg(D1) + 0.30*Avg(D3) + 0.20*Avg(D5) + 0.10*Avg(D9)
-  const a1 = avg(rows.map(r=>r.D1));
-  const a3 = avg(rows.map(r=>r.D3));
-  const a5 = avg(rows.map(r=>r.D5));
-  const a9 = avg(rows.map(r=>r.D9));
-  const base = 0.40*(Number.isFinite(a1)?a1:0) + 0.30*(Number.isFinite(a3)?a3:0) + 0.20*(Number.isFinite(a5)?a5:0) + 0.10*(Number.isFinite(a9)?a9:0);
-  const n = rows.length;
-  const penalty = n < 5 ? 0.7 : (n < 10 ? 0.85 : 1.0);
-  return base * penalty;
-}
+  // ✅ DetectDate 기준 최신순
+  const rows = storageRows.slice().sort((a,b) => String(b.DetectDate).localeCompare(String(a.DetectDate)));
 
-function groupBySignalType(rows){
-  const groups = new Map();
+  // ✅ 최근 N거래일만(DetectDate 고유값 기준)
+  const uniqDates = [];
+  const seen = new Set();
   for(const r of rows){
-    const key = (r.Signal_Type || "").trim() || "UNKNOWN";
-    if(!groups.has(key)) groups.set(key, []);
-    groups.get(key).push(r);
-  }
-  return groups;
-}
-
-function perfBuildScoreboard(){
-  const groups = groupBySignalType(storageFiltered);
-  const out = [];
-  for(const [type, rows] of groups.entries()){
-    const retArr = rows.map(r=>r.Return);
-    const row = {
-      Signal_Type: type,
-      N: rows.length,
-      WinRate: winRate(retArr),
-      AvgReturn: avg(retArr),
-      MedReturn: median(retArr),
-      AvgD1: avg(rows.map(r=>r.D1)),
-      AvgD3: avg(rows.map(r=>r.D3)),
-      AvgD5: avg(rows.map(r=>r.D5)),
-      AvgD7: avg(rows.map(r=>r.D7)),
-      AvgD9: avg(rows.map(r=>r.D9)),
-      Score: scoreForGroup(rows),
-    };
-    out.push(row);
-  }
-
-  // sort
-  const sortKey = $("perfSortSel")?.value || "SCORE";
-  out.sort((a,b)=>{
-    const dir = -1; // desc
-    const pick = (o)=>{
-      if(sortKey==="SCORE") return o.Score;
-      if(sortKey==="WIN") return o.WinRate;
-      if(sortKey==="N") return o.N;
-      if(sortKey==="D1") return o.AvgD1;
-      if(sortKey==="D3") return o.AvgD3;
-      if(sortKey==="D5") return o.AvgD5;
-      if(sortKey==="D7") return o.AvgD7;
-      if(sortKey==="D9") return o.AvgD9;
-      if(sortKey==="RET") return o.AvgReturn;
-      return o.Score;
+    const d = String(r.DetectDate||"").slice(0,10);
+    if(!d) continue;
+    if(!seen.has(d)){
+      seen.add(d);
+      uniqDates.push(d);
     }
-    const x = pick(a), y = pick(b);
-    return (y - x) * dir;
-  });
-  return out;
+    if(uniqDates.length >= perfDays) break;
+  }
+  const allowDates = new Set(uniqDates);
+  const filtered = rows.filter(r => allowDates.has(String(r.DetectDate||"").slice(0,10)));
+
+  $("perfRowCount").textContent = String(filtered.length);
+  $("perfSample").textContent = String(filtered.length);
+
+  // ✅ 평균/중앙/승률
+  const rets = filtered.map(perfPickReturn).filter(Number.isFinite);
+  const avg = rets.length ? rets.reduce((a,b)=>a+b,0)/rets.length : 0;
+  const med = rets.length ? (rets.slice().sort((a,b)=>a-b)[Math.floor(rets.length/2)]) : 0;
+  const win = rets.length ? (rets.filter(x=>x>0).length / rets.length) : 0;
+
+  $("perfAvg").textContent = (avg*100).toFixed(2) + "%";
+  $("perfMed").textContent = (med*100).toFixed(2) + "%";
+  $("perfWin").textContent = (win*100).toFixed(1) + "%";
+
+  // ✅ Top/Worst (rets 기준)
+  if(rets.length){
+    const topV = Math.max(...rets);
+    const worstV = Math.min(...rets);
+    const topRow = filtered.find(r => perfPickReturn(r) === topV);
+    const worstRow = filtered.find(r => perfPickReturn(r) === worstV);
+    $("perfTop").textContent = topRow ? `${topRow.Name || topRow.Code} ${(topV*100).toFixed(2)}%` : "-";
+    $("perfWorst").textContent = worstRow ? `${worstRow.Name || worstRow.Code} ${(worstV*100).toFixed(2)}%` : "-";
+  }else{
+    $("perfTop").textContent = "-";
+    $("perfWorst").textContent = "-";
+  }
+
+  // ✅ 테이블 렌더
+  body.innerHTML = filtered.map(r => `
+    <tr>
+      <td class="mono muted">${escapeHtml(String(r.DetectDate||"").slice(0,10))}</td>
+      <td class="mono muted">${escapeHtml(r.Code)}</td>
+      <td class="nameCell">${escapeHtml(r.Name||"")}</td>
+      <td class="mono">${escapeHtml(r.Signal_Type||"")}</td>
+      <td class="numRight mono">${fmt(Math.round(toNum(r.EntryPrice)))}</td>
+      <td class="numRight mono">${pctCell(Number(r.D1))}</td>
+      <td class="numRight mono">${pctCell(Number(r.D3))}</td>
+      <td class="numRight mono">${pctCell(Number(r.D5))}</td>
+      <td class="numRight mono">${pctCell(Number(r.D7))}</td>
+      <td class="numRight mono">${pctCell(Number(r.D9))}</td>
+    </tr>
+  `).join("");
+}
+function isFiniteNumber2(x){ return Number.isFinite(Number(x)); }
+function R(x){ return Number(x); }
+function pctCell(x){
+  if(!Number.isFinite(x)) return `<span class="muted">-</span>`;
+  const color = x >= 0 ? "#a7f3d0" : "#fecaca";
+  return `<span style="color:${color}; font-weight:950;">${(x*100).toFixed(2)}%</span>`;
+}
+function isFiniteNumber(x){ return Number.isFinite(x); }
+function Rn(v){ const x = Number(v); return Number.isFinite(x) ? x : NaN; }
+function perfPickReturn(row){
+  const order = ["D9","D7","D5","D3","D1"];
+  for(const k of order){
+    const v = Rn(row[k]);
+    if(Number.isFinite(v)) return v;
+  }
+  return NaN;
 }
 
-function perfApplyTypeFilter(rows){
-  const sel = $("perfTypeSel")?.value || "ALL";
-  if(sel === "ALL") return rows;
-
-  // Scoreboard rows use Signal_Type; others also.
-  return rows.filter(r => (r.Signal_Type || "") === sel);
-}
-
-function perfBuildTopBottom(isTop){
-  // build row list at "signal hit" level, optionally filter by Signal_Type
-  let rows = storageFiltered.slice();
-
-  const sel = $("perfTypeSel")?.value || "ALL";
-  if(sel !== "ALL"){
-    rows = rows.filter(r => (r.Signal_Type||"") === sel);
-  }
-
-  const sortKey = $("perfSortSel")?.value || "RET";
-  const keyFn = (r)=>{
-    if(sortKey==="D1") return r.D1;
-    if(sortKey==="D3") return r.D3;
-    if(sortKey==="D5") return r.D5;
-    if(sortKey==="D7") return r.D7;
-    if(sortKey==="D9") return r.D9;
-    return r.Return;
-  };
-
-  rows.sort((a,b)=>{
-    const x = keyFn(a), y = keyFn(b);
-    const xx = Number.isFinite(x) ? x : -999;
-    const yy = Number.isFinite(y) ? y : -999;
-    return isTop ? (yy-xx) : (xx-yy);
-  });
-
-  return rows.slice(0, 60);
-}
-
-function perfBuildHits(){
-  // group by Code: count hits and show last signal types within window
-  let rows = storageFiltered.slice();
-  const sel = $("perfTypeSel")?.value || "ALL";
-  if(sel !== "ALL"){
-    rows = rows.filter(r => (r.Signal_Type||"") === sel);
-  }
-
-  const by = new Map();
-  for(const r of rows){
-    if(!by.has(r.Code)) by.set(r.Code, []);
-    by.get(r.Code).push(r);
-  }
-
-  const out = [];
-  for(const [code, list] of by.entries()){
-    list.sort((a,b)=> (a.DetectDate<b.DetectDate?1:-1));
-    const name = list[0]?.Name || "";
-    const market = list[0]?.Market || "";
-    const types = Array.from(new Set(list.map(x=>x.Signal_Type).filter(Boolean))).slice(0,6);
-    const lastDate = list[0]?.DetectDate || "";
-    const best = Math.max(...list.map(x=>Number.isFinite(x.Return)?x.Return:-999));
-    const worst = Math.min(...list.map(x=>Number.isFinite(x.Return)?x.Return:999));
-    out.push({
-      Code: code,
-      Name: name,
-      Market: market,
-      Hits: list.length,
-      LastDetectDate: lastDate,
-      Types: types,
-      BestReturn: (best===-999?NaN:best),
-      WorstReturn: (worst===999?NaN:worst)
-    });
-  }
-
-  // sort by hits desc then last date desc
-  out.sort((a,b)=>{
-    if(b.Hits !== a.Hits) return b.Hits - a.Hits;
-    return (a.LastDetectDate < b.LastDetectDate) ? 1 : -1;
-  });
-  return out;
-}
-
-function perfUpdateKpis(){
-  if(!storageFiltered.length){
-    perfKpis.innerHTML = `<span class="chip">Storage 데이터 없음</span>`;
-    return;
-  }
-  const rets = storageFiltered.map(r=>r.Return).filter(x=>Number.isFinite(x));
-  const avgR = avg(rets);
-  const medR = median(rets);
-  const wr = winRate(rets);
-  const n = storageFiltered.length;
-
-  // best/worst item
-  let best = null, worst = null;
-  for(const r of storageFiltered){
-    if(!Number.isFinite(r.Return)) continue;
-    if(!best || r.Return > best.Return) best = r;
-    if(!worst || r.Return < worst.Return) worst = r;
-  }
-
-  perfKpis.innerHTML = `
-    <span class="chip">최근 <b>${perfWindow}</b>거래일</span>
-    <span class="chip">표본 <b>${fmt(n)}</b></span>
-    <span class="chip">평균 <b style="color:${avgR>=0?'#a7f3d0':'#fecaca'}">${fmtPct(avgR)}</b></span>
-    <span class="chip">중앙값 <b style="color:${medR>=0?'#a7f3d0':'#fecaca'}">${fmtPct(medR)}</b></span>
-    <span class="chip">승률 <b>${Number.isFinite(wr)?(wr*100).toFixed(1)+'%':'-'}</b></span>
-    <span class="chip">Best <b style="color:#a7f3d0">${best ? (escapeHtml(best.Name||best.Code)+' '+fmtPct(best.Return)) : '-'}</b></span>
-    <span class="chip">Worst <b style="color:#fecaca">${worst ? (escapeHtml(worst.Name||worst.Code)+' '+fmtPct(worst.Return)) : '-'}</b></span>
-  `;
-}
-
-function sigTypeBadge(type){
-  const t = String(type||"").trim();
-  if(!t) return `<span class="sig blue">-</span>`;
-  const parts = t.split("+").filter(Boolean);
-  const cls = parts.length >= 3 ? "red" : (parts.length === 2 ? "yellow" : "green");
-  return `<span class="sig ${cls}">${escapeHtml(t)}</span>`;
-}
-
-function perfRender(){
-  $("perfWindowTxt").textContent = String(perfWindow);
-
-  if(!storageRows.length){
-    $("perfRowCount").textContent = "0";
-    perfThead.innerHTML = `<tr><th>안내</th></tr>`;
-    perfTbody.innerHTML = `<tr><td class="center muted" style="padding:28px;">Storage CSV URL을 확인해줘. (설정 ⚙️ → STORAGE)</td></tr>`;
-    perfUpdateKpis();
-    return;
-  }
-
-  filterStorageWindow();
-  perfUpdateKpis();
-
-  if(!storageFiltered.length){
-    $("perfRowCount").textContent = "0";
-    perfThead.innerHTML = `<tr><th>안내</th></tr>`;
-    perfTbody.innerHTML = `<tr><td class="center muted" style="padding:28px;">최근 ${perfWindow}거래일에 해당하는 Storage 데이터가 없어.</td></tr>`;
-    return;
-  }
-
-  // mode switch
-  if(perfMode === "INFO"){
-    $("perfTitle").textContent = "신뢰도 점수 산식";
-    $("perfRowCount").textContent = "1";
-    perfThead.innerHTML = `<tr><th>항목</th><th>내용</th></tr>`;
-    perfTbody.innerHTML = `
-      <tr>
-        <td class="mono">Score</td>
-        <td>
-          0.40·Avg(D1) + 0.30·Avg(D3) + 0.20·Avg(D5) + 0.10·Avg(D9)<br/>
-          <span class="muted">표본 패널티: n&lt;5 → ×0.70, n&lt;10 → ×0.85</span>
-        </td>
-      </tr>
-      <tr>
-        <td class="mono">해석</td>
-        <td>
-          <b>Score</b>가 높을수록 최근 성능이 좋았던 신호 조합.<br/>
-          <b>승률</b>(Return&gt;0)과 <b>표본수</b>(N)를 같이 보고 판단하면 안정적이야.
-        </td>
-      </tr>
-    `;
-    return;
-  }
-
-  if(perfMode === "SCOREBOARD"){
-    $("perfTitle").textContent = "신호 신뢰도 보드";
-    let rows = perfBuildScoreboard();
-    rows = perfApplyTypeFilter(rows);
-
-    $("perfRowCount").textContent = String(rows.length);
-
-    perfThead.innerHTML = `
-      <tr>
-        <th>Signal_Type</th>
-        <th class="numRight">N</th>
-        <th class="numRight">승률</th>
-        <th class="numRight">Score</th>
-        <th class="numRight">Avg Ret</th>
-        <th class="numRight">Med Ret</th>
-        <th class="numRight">D1</th>
-        <th class="numRight">D3</th>
-        <th class="numRight">D5</th>
-        <th class="numRight">D7</th>
-        <th class="numRight">D9</th>
-      </tr>
-    `;
-
-    perfTbody.innerHTML = rows.map(r=>{
-      const cScore = (r.Score>=0) ? "#a7f3d0" : "#fecaca";
-      const cRet = (r.AvgReturn>=0) ? "#a7f3d0" : "#fecaca";
-      return `
-        <tr>
-          <td>${sigTypeBadge(r.Signal_Type)}</td>
-          <td class="numRight mono">${fmt(r.N)}</td>
-          <td class="numRight mono">${Number.isFinite(r.WinRate) ? (r.WinRate*100).toFixed(1)+"%" : "-"}</td>
-          <td class="numRight mono" style="color:${cScore}">${fmtPct(r.Score)}</td>
-          <td class="numRight mono" style="color:${cRet}">${fmtPct(r.AvgReturn)}</td>
-          <td class="numRight mono">${fmtPct(r.MedReturn)}</td>
-          <td class="numRight mono">${fmtPct(r.AvgD1)}</td>
-          <td class="numRight mono">${fmtPct(r.AvgD3)}</td>
-          <td class="numRight mono">${fmtPct(r.AvgD5)}</td>
-          <td class="numRight mono">${fmtPct(r.AvgD7)}</td>
-          <td class="numRight mono">${fmtPct(r.AvgD9)}</td>
-        </tr>
-      `;
-    }).join("");
-    return;
-  }
-
-  if(perfMode === "TOP" || perfMode === "BOTTOM"){
-    const isTop = perfMode === "TOP";
-    $("perfTitle").textContent = isTop ? "TOP 성과 리스트" : "Worst 성과 리스트";
-    const rows = perfBuildTopBottom(isTop);
-    $("perfRowCount").textContent = String(rows.length);
-
-    const sortKey = $("perfSortSel")?.value || "RET";
-    const label = (k)=> k==="RET" ? "Return" : k;
-
-    perfThead.innerHTML = `
-      <tr>
-        <th>DetectDate</th>
-        <th>Code</th>
-        <th>Name</th>
-        <th>Signal_Type</th>
-        <th class="numRight">Entry</th>
-        <th class="numRight">Close</th>
-        <th class="numRight">${label(sortKey)}</th>
-        <th class="numRight">D1</th>
-        <th class="numRight">D3</th>
-        <th class="numRight">D5</th>
-        <th class="numRight">D7</th>
-        <th class="numRight">D9</th>
-      </tr>
-    `;
-
-    perfTbody.innerHTML = rows.map(r=>{
-      const pick = (k)=>{
-        if(k==="D1") return r.D1;
-        if(k==="D3") return r.D3;
-        if(k==="D5") return r.D5;
-        if(k==="D7") return r.D7;
-        if(k==="D9") return r.D9;
-        return r.Return;
-      };
-      const v = pick(sortKey);
-      const col = Number.isFinite(v) ? (v>=0 ? "#a7f3d0" : "#fecaca") : "#94a3b8";
-      return `
-        <tr data-perf-code="${r.Code}">
-          <td class="mono muted">${escapeHtml(r.DetectDate)}</td>
-          <td class="mono" style="color:#bfdbfe;">${escapeHtml(r.Code)}</td>
-          <td class="nameCell">${escapeHtml(r.Name||"")}</td>
-          <td>${sigTypeBadge(r.Signal_Type)}</td>
-          <td class="numRight mono">${fmt(Math.round(r.EntryPrice||0))}</td>
-          <td class="numRight mono">${fmt(Math.round(r.Close_Today||0))}</td>
-          <td class="numRight mono" style="color:${col}; font-weight:950;">${fmtPct(v)}</td>
-          <td class="numRight mono">${fmtPct(r.D1)}</td>
-          <td class="numRight mono">${fmtPct(r.D3)}</td>
-          <td class="numRight mono">${fmtPct(r.D5)}</td>
-          <td class="numRight mono">${fmtPct(r.D7)}</td>
-          <td class="numRight mono">${fmtPct(r.D9)}</td>
-        </tr>
-      `;
-    }).join("");
-    return;
-  }
-
-  if(perfMode === "HITS"){
-    $("perfTitle").textContent = "종목 히스토리(중복 포착)";
-    const rows = perfBuildHits();
-    $("perfRowCount").textContent = String(rows.length);
-
-    perfThead.innerHTML = `
-      <tr>
-        <th>Code</th>
-        <th>Name</th>
-        <th class="numRight">Hits</th>
-        <th>Last</th>
-        <th>Types</th>
-        <th class="numRight">Best Ret</th>
-        <th class="numRight">Worst Ret</th>
-      </tr>
-    `;
-    perfTbody.innerHTML = rows.map(r=>{
-      const bestCol = Number.isFinite(r.BestReturn) ? (r.BestReturn>=0?"#a7f3d0":"#fecaca") : "#94a3b8";
-      const worstCol = Number.isFinite(r.WorstReturn) ? (r.WorstReturn>=0?"#a7f3d0":"#fecaca") : "#94a3b8";
-      const types = (r.Types||[]).map(sigTypeBadge).join(" ");
-      return `
-        <tr data-perf-code="${r.Code}">
-          <td class="mono" style="color:#bfdbfe;">${escapeHtml(r.Code)}</td>
-          <td class="nameCell">${escapeHtml(r.Name||"")}</td>
-          <td class="numRight mono">${fmt(r.Hits)}</td>
-          <td class="mono muted">${escapeHtml(r.LastDetectDate||"-")}</td>
-          <td>${types || "-"}</td>
-          <td class="numRight mono" style="color:${bestCol}; font-weight:950;">${fmtPct(r.BestReturn)}</td>
-          <td class="numRight mono" style="color:${worstCol}; font-weight:950;">${fmtPct(r.WorstReturn)}</td>
-        </tr>
-      `;
-    }).join("");
-    return;
-  }
-}
-
-function perfShowCodeHistory(code){
-  const c = String(code||"").trim();
-  if(!/^\d{6}$/.test(c)) return;
-
-  perfSelectedCode = c;
-
-  const list = storageFiltered.filter(r => r.Code === c).slice().sort((a,b)=> (a.DetectDate<b.DetectDate?1:-1));
-  if(!list.length){
-    $("perfDetailBox").style.display = "none";
-    return;
-  }
-
-  const name = list[0].Name || c;
-  const lines = list.map(r=>{
-    const retCol = Number.isFinite(r.Return) ? (r.Return>=0 ? "#a7f3d0" : "#fecaca") : "#94a3b8";
-    return `
-      <div style="padding:8px 0; border-bottom:1px solid rgba(34,48,83,.55);">
-        <div class="muted mono">${escapeHtml(r.DetectDate)} · ${sigTypeBadge(r.Signal_Type)}</div>
-        <div style="margin-top:6px;">
-          Return <b style="color:${retCol}">${fmtPct(r.Return)}</b>
-          <span class="muted"> | D1 ${fmtPct(r.D1)} · D3 ${fmtPct(r.D3)} · D5 ${fmtPct(r.D5)} · D7 ${fmtPct(r.D7)} · D9 ${fmtPct(r.D9)}</span>
-        </div>
-      </div>
-    `;
-  }).join("");
-
-  $("perfDetailBox").style.display = "block";
-  $("detailAnalysisBox").style.display = "none";
-  $("detailMeta").textContent = `Storage | ${c}`;
-  $("detailName").textContent = name;
-  $("detailClose").textContent = fmt(Math.round(list[0].Close_Today||0));
-  $("detailRSI").textContent = "-";
-  $("detailStoch").textContent = "-";
-  $("detailVol").textContent = "-";
-  $("detailFoot").innerHTML = `최근 ${perfWindow}거래일 포착 히스토리`;
-
-  $("perfDetailBody").innerHTML = lines;
-
-  // chart
-  const frame = document.getElementById("tvFrame");
-  if(frame){
-    frame.src =
-      "https://www.tradingview.com/widgetembed/?" +
-      "symbol=KRX:" + c +
-      "&interval=D" +
-      "&theme=dark" +
-      "&hidesidetoolbar=1" +
-      "&hidetoptoolbar=1";
-  }
-
-  rightPane.classList.add("open");
-}
-
-/* =========================
-   Fetch all
-   ========================= */
+/** =========================
+ *  데이터 로딩 (포착 + 성과)
+ *  ========================= */
 async function fetchData(){
   if(!sheetUrls.ALL){
     openSettings(true);
@@ -1535,17 +1161,15 @@ async function fetchData(){
   closeDetail();
 
   try{
-    const tasks = [
+    const [allText, trendText, pullText, breakText, storageText] = await Promise.all([
       fetchText(sheetUrls.ALL),
       sheetUrls.TREND ? fetchText(sheetUrls.TREND).catch(()=>null) : Promise.resolve(null),
       sheetUrls.PULLBACK ? fetchText(sheetUrls.PULLBACK).catch(()=>null) : Promise.resolve(null),
       sheetUrls.BREAKOUT ? fetchText(sheetUrls.BREAKOUT).catch(()=>null) : Promise.resolve(null),
       sheetUrls.STORAGE ? fetchText(sheetUrls.STORAGE).catch(()=>null) : Promise.resolve(null),
-    ];
+    ]);
 
-    const [allText, trendText, pullText, breakText, storageText] = await Promise.all(tasks);
-
-    // Screener
+    // ---- 포착(ALL 기반)
     const allData = parseAllSheet(allText);
     if(!allData.length) throw new Error("ALL 시트 파싱 실패. 헤더/데이터 형식을 확인해줘.");
 
@@ -1567,31 +1191,19 @@ async function fetchData(){
       return toNum(b.Turnover) - toNum(a.Turnover);
     });
 
+    // ✅ 여기서 유령 찜 제거
+    reconcileFavsWithData();
+
     updateStats();
     renderTable();
 
-    // Storage
+    // ---- 성과(Storage)
     if(storageText){
-      storageRows = parseStorageSheet(storageText);
-
-      // normalize + safety
-      storageRows = storageRows.map(r => ({
-        ...r,
-        Code: pad6(r.Code),
-        DetectDate: String(r.DetectDate||"").trim(),
-        Signal_Type: String(r.Signal_Type||"").trim(),
-      })).filter(r => /^\d{6}$/.test(r.Code) && /^\d{4}-\d{2}-\d{2}$/.test(r.DetectDate));
-
-      // sort for stability
-      storageRows.sort((a,b)=>{
-        if(a.DetectDate !== b.DetectDate) return a.DetectDate < b.DetectDate ? 1 : -1;
-        return a.Code < b.Code ? 1 : -1;
-      });
-    } else {
-      storageRows = [];
+      const storageRows = parseStorageSheet(storageText);
+      renderPerf(storageRows);
+    }else{
+      renderPerf([]);
     }
-
-    perfRender();
 
     lastUpdatedPill.textContent = "갱신: " + new Date().toLocaleTimeString("ko-KR");
     setStatus("ok","최신 반영");
@@ -1599,56 +1211,56 @@ async function fetchData(){
 
   }catch(e){
     data = [];
-    storageRows = [];
     updateStats();
     renderEmpty("데이터 로딩 실패: " + (e.message || String(e)));
-    perfRender();
-
+    renderPerf([]);
     setStatus("err","실패");
     showError(e.message || String(e));
   }finally{
     $("refreshBtn").disabled = false;
     $("refreshIcon").textContent = "↻";
-    saveFavs();
   }
 }
 
-/* =========================
-   Tabs / settings
-   ========================= */
+/** =========================
+ *  URL settings
+ *  ========================= */
+function loadUrls(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return {...initialUrls};
+    const obj = JSON.parse(raw);
+    return { ...initialUrls, ...obj };
+  }catch{
+    return {...initialUrls};
+  }
+}
+function saveUrls(){
+  localStorage.setItem(LS_KEY, JSON.stringify(sheetUrls));
+}
 function openSettings(open){
   settingsPanel.classList.toggle("open", !!open);
 }
 
-function switchTab(which){
-  const isPerf = which === "PERF";
-  $("tabScreener").classList.toggle("active", !isPerf);
-  $("tabPerformance").classList.toggle("active", isPerf);
-
-  viewScreener.style.display = isPerf ? "none" : "block";
-  viewPerformance.style.display = isPerf ? "block" : "none";
-  perfKpis.style.display = isPerf ? "flex" : "none";
-
-  closeDetail();
-  if(isPerf){
-    perfRender();
-  }else{
-    renderTable();
-  }
+/** =========================
+ *  Tabs
+ *  ========================= */
+function openTab(name){
+  const isCatch = (name === "catch");
+  $("pageCatch").classList.toggle("active", isCatch);
+  $("pagePerf").classList.toggle("active", !isCatch);
+  $("tabCatch").classList.toggle("active", isCatch);
+  $("tabPerf").classList.toggle("active", !isCatch);
 }
 
-/* =========================
-   Bind events
-   ========================= */
+/** =========================
+ *  Events bind
+ *  ========================= */
 function bind(){
-  // settings open/close
   $("settingsBtn").addEventListener("click", () => openSettings(!settingsPanel.classList.contains("open")));
   $("settingsCloseBtn").addEventListener("click", () => openSettings(false));
 
-  // refresh
   $("refreshBtn").addEventListener("click", fetchData);
-
-  // save & refresh
   $("saveAndRefreshBtn").addEventListener("click", () => {
     sheetUrls = {
       ALL: $("urlALL").value.trim(),
@@ -1657,29 +1269,28 @@ function bind(){
       BREAKOUT: $("urlBREAKOUT").value.trim(),
       STORAGE: $("urlSTORAGE").value.trim(),
     };
-    const w = Number($("perfWindowSel").value);
-    if([5,10,20].includes(w)) perfWindow = w;
-    savePerfWindow();
-
     saveUrls();
+    savePerfDays();
     fetchData();
   });
 
-  // perf window select (in settings)
-  $("perfWindowSel").addEventListener("change", () => {
-    const w = Number($("perfWindowSel").value);
-    if([5,10,20].includes(w)){
-      perfWindow = w;
-      savePerfWindow();
-      perfRender();
-    }
+  // ✅ 기간 조절
+  $("daysMinusBtn").addEventListener("click", () => {
+    perfDays = Math.max(5, perfDays - 5);
+    savePerfDays();
+    fetchData();
+  });
+  $("daysPlusBtn").addEventListener("click", () => {
+    perfDays = Math.min(60, perfDays + 5);
+    savePerfDays();
+    fetchData();
   });
 
-  // tabs
-  $("tabScreener").addEventListener("click", ()=> switchTab("SCR"));
-  $("tabPerformance").addEventListener("click", ()=> switchTab("PERF"));
+  // ✅ 탭 전환
+  $("tabCatch").addEventListener("click", () => openTab("catch"));
+  $("tabPerf").addEventListener("click", () => openTab("perf"));
 
-  // screener filter cards
+  // ✅ 필터 카드
   document.querySelectorAll(".card[data-filter]").forEach(el => {
     el.addEventListener("click", () => {
       document.querySelectorAll(".card[data-filter]").forEach(c => c.classList.remove("active"));
@@ -1690,22 +1301,7 @@ function bind(){
     });
   });
 
-  // perf cards
-  document.querySelectorAll("#perfCards .card[data-perf]").forEach(el=>{
-    el.addEventListener("click", ()=>{
-      document.querySelectorAll("#perfCards .card[data-perf]").forEach(c=>c.classList.remove("active"));
-      el.classList.add("active");
-      perfMode = el.dataset.perf;
-      closeDetail();
-      perfRender();
-    });
-  });
-
-  // perf selects
-  $("perfSortSel").addEventListener("change", ()=> perfRender());
-  $("perfTypeSel").addEventListener("change", ()=> perfRender());
-
-  // screener table click
+  // ✅ 테이블 클릭
   tbody.addEventListener("click", (e) => {
     const t = e.target;
 
@@ -1723,37 +1319,36 @@ function bind(){
     renderTable();
   });
 
-  // perf table click: show history (right panel)
-  perfTbody.addEventListener("click", (e)=>{
-    const tr = e.target.closest("tr[data-perf-code]");
-    if(!tr) return;
-    const code = tr.getAttribute("data-perf-code");
-    if(!code) return;
-    perfShowCodeHistory(code);
-  });
-
-  // detail close
   $("detailCloseBtn").addEventListener("click", () => {
     closeDetail();
-    if(viewPerformance.style.display !== "none") perfRender();
-    else renderTable();
+    renderTable();
   });
 
-  window.addEventListener("resize", () => {
-    if(viewPerformance.style.display !== "none") perfRender();
-    else renderTable();
+  // ✅ How 카드
+  $("howCard").addEventListener("click", () => {
+    alert(
+`[How: 점수/성과 해석]
+- 성과는 Storage의 D1/D3/D5/D7/D9 수익률을 기반으로 요약해.
+- 최근 N거래일은 DetectDate(YYYY-MM-DD)의 '고유 날짜' 기준으로 집계.
+- Top/Worst는 D9→D7→D5→D3→D1 순으로 "가장 먼 수익률"이 있으면 그걸 대표 수익률로 사용.
+- 찜(⭐)은 현재 로딩된 종목코드에 존재하는 것만 유효(유령 찜 자동 제거).`
+    );
   });
 
-  // fill settings inputs
+  window.addEventListener("resize", () => renderTable());
+
+  // ✅ settings 초기값
   $("urlALL").value = sheetUrls.ALL;
   $("urlTREND").value = sheetUrls.TREND;
   $("urlPULLBACK").value = sheetUrls.PULLBACK;
   $("urlBREAKOUT").value = sheetUrls.BREAKOUT;
   $("urlSTORAGE").value = sheetUrls.STORAGE;
 
-  $("perfWindowSel").value = String(perfWindow);
+  // ✅ perf days 표시
+  savePerfDays();
 
-  saveFavs();
+  // ✅ 찜 숫자만 먼저 반영(데이터 로딩 후 reconcile로 정리됨)
+  $("statFav").textContent = String(selectedCodes.size);
 }
 
 bind();
