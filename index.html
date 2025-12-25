@@ -24,21 +24,38 @@
     :root{
       --bg:#0f172a; --panel:#111c33; --panel2:#0b1224;
       --line:#223053; --txt:#e5e7eb; --muted:#94a3b8;
-      --green:#22c55e; --yellow:#eab308; --red:#ef4444;
+      --green:#22c55e; --yellow:#eab308; --red:#ef4444; --blue:#60a5fa;
       --radius:14px; --tap: 44px;
     }
     *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
     html, body { height:100%; }
     body{
-      margin:0; background:var(--bg); color:var(--txt);
+      margin:0;
+      background:var(--bg);
+      color:var(--txt);
       font-family: ui-sans-serif, system-ui, -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-      height: 100dvh; overflow:hidden; /* 앱형 UI 유지 */
+      overflow: hidden; /* ✅ 앱처럼: 전체는 main이 스크롤 담당 */
+      overscroll-behavior: none;
     }
 
-    header{ padding-top: env(safe-area-inset-top); }
+    /* ===== App Layout ===== */
+    .app{
+      height: 100dvh;
+      display:flex;
+      flex-direction: column;
+      min-height:0;
+    }
     header{
+      padding-top: env(safe-area-inset-top);
+      background:var(--panel);
+      border-bottom:1px solid var(--line);
+      position: sticky;
+      top:0;
+      z-index:70;
+    }
+    .headInner{
       display:flex; align-items:center; justify-content:space-between; gap:10px;
-      padding:10px 14px; background:var(--panel); border-bottom:1px solid var(--line);
+      padding:10px 14px;
     }
     .brand{ display:flex; align-items:center; gap:10px; min-width:0; }
     .logo{
@@ -59,7 +76,7 @@
     .btn{
       min-height:var(--tap);
       border:1px solid var(--line); background:transparent; color:var(--txt);
-      padding:9px 12px; border-radius:12px; cursor:pointer; font-weight:800; font-size:13px;
+      padding:9px 12px; border-radius:12px; cursor:pointer; font-weight:900; font-size:13px;
       display:flex; align-items:center; gap:8px;
     }
     .btn.primary{ background:rgba(59,130,246,.18); border-color:rgba(59,130,246,.45); }
@@ -72,42 +89,47 @@
     .pill.err{ border-color: rgba(239,68,68,.45); color:#fecaca; background:rgba(239,68,68,.10);}
     .pill.warn{ border-color: rgba(234,179,8,.45); color:#fde68a; background:rgba(234,179,8,.10);}
 
-    /* ✅ 탭 */
-    .tabbar{
-      display:flex; gap:10px; padding:12px 14px;
-      background: rgba(255,255,255,.02);
-      border-bottom:1px solid var(--line);
-    }
-    .tabbtn{
-      border:1px solid var(--line); background:rgba(255,255,255,.03);
-      color:var(--txt); padding:10px 14px; border-radius:14px;
-      font-weight:900; cursor:pointer; display:flex; align-items:center; gap:10px;
-    }
-    .tabbtn.active{ outline:1px solid rgba(59,130,246,.55); background: rgba(59,130,246,.12); }
-    .tabbtn .muted{ font-weight:800; }
-
-    /* ✅ 전체 앱 레이아웃 */
-    .app{
-      display:flex;
-      flex-direction:column;
-      height: calc(100dvh - 58px - env(safe-area-inset-top));
-      min-height:0;              /* ✅ iOS 스크롤 핵심 */
-      overflow:hidden;
+    /* ✅ main이 스크롤 담당 (iOS 안정화 핵심) */
+    main{
+      flex:1;
+      min-height:0;
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+      padding:14px;
+      padding-bottom: calc(14px + env(safe-area-inset-bottom));
+      overscroll-behavior: contain;
+      touch-action: pan-y;
     }
 
-    /* settings panel */
+    /* ===== Settings Panel (overlay) ===== */
     .settings{
       display:none;
-      position:absolute;
-      top: calc(58px + env(safe-area-inset-top));
-      left:0; right:0;
-      background:var(--panel);
-      border-bottom:1px solid var(--line);
-      padding:14px;
-      z-index:60;
+      position: fixed;
+      top:0; left:0; right:0; bottom:0;
+      z-index:90;
+      background: rgba(0,0,0,.55);
+      padding: calc(70px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom)) 14px;
     }
     .settings.open{ display:block; }
-    .settings .inner{ max-width:1100px; margin:0 auto; display:flex; flex-direction:column; gap:10px; }
+    .settingsCard{
+      max-width:1100px; margin:0 auto;
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:16px;
+      box-shadow:0 24px 80px rgba(0,0,0,.45);
+      overflow:hidden;
+    }
+    .settingsHead{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:12px 14px;
+      border-bottom:1px solid var(--line);
+      background: rgba(255,255,255,.02);
+      font-weight:950;
+    }
+    .settingsBody{
+      padding:14px;
+      display:flex; flex-direction:column; gap:10px;
+    }
     .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
     label{ font-size:12px; color:var(--muted); }
     input[type="text"]{
@@ -122,74 +144,46 @@
       padding:12px; border-radius:12px; color:#fecaca; font-size:12px;
     }
 
-    /* ✅ 탭 페이지(포착/성과) */
-    .pageWrap{
-      flex:1;
-      min-height:0;           /* ✅ iOS 스크롤 핵심 */
-      overflow:hidden;
-      position:relative;
+    /* ===== Tabs ===== */
+    .tabs{
+      display:flex; gap:10px;
+      margin-bottom:12px;
     }
-    .page{
-      position:absolute; inset:0;
-      display:none;
-      min-height:0;
+    .tabbtn{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      color: var(--txt);
+      padding:10px 12px;
+      border-radius:12px;
+      font-weight:950;
+      cursor:pointer;
+      display:flex; align-items:center; gap:8px;
     }
-    .page.active{ display:block; }
-
-    /* ✅ 포착 탭(기존 구조 유지) */
-    .wrap{
-      display:flex;
-      height: 100%;
-      min-height:0;
-    }
-
-    .left{
-      flex:1;
-      display:flex; flex-direction:column;
-      padding:14px; gap:14px;
-      min-width:0;
-      min-height:0;          /* ✅ 중요 */
-      overflow:hidden;
-    }
-    .right{
-      width:380px; border-left:1px solid var(--line); background:var(--panel);
-      padding:14px;
-      overflow:auto; -webkit-overflow-scrolling:touch;
-      overscroll-behavior:contain;
-      display:none; min-height:0;
-    }
-    .right.open{ display:block; }
-    @media (max-width:1024px){
-      .right{
-        position:absolute; inset: 0;
-        width:auto; z-index:55; display:none;
-        border-left:none; border-top:1px solid var(--line);
-        border-radius:16px 16px 0 0;
-      }
-      .right.open{ display:block; }
+    .tabbtn.active{
+      background: rgba(59,130,246,.18);
+      border-color: rgba(59,130,246,.45);
     }
 
-    /* stat cards */
+    /* ===== Cards / Panels ===== */
     .stats{
       display:grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
       gap:12px;
-      min-height:0;
+      margin-bottom:14px;
     }
-    @media (max-width: 980px){
-      .stats{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    }
-    @media (max-width: 640px){
-      .stats{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
+    @media (max-width: 980px){ .stats{ grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 640px){ .stats{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
     .card{
-      border:1px solid var(--line); background:var(--panel); border-radius:var(--radius);
-      padding:12px; cursor:pointer; min-height:80px;
-      transition: transform .05s ease, background .15s ease;
+      border:1px solid var(--line);
+      background:var(--panel);
+      border-radius:var(--radius);
+      padding:12px;
+      min-height:80px;
+      box-shadow:0 12px 40px rgba(0,0,0,.20);
     }
+    .card.clickable{ cursor:pointer; }
     .card:active{ transform: translateY(1px); }
-    .card.active{ outline:1px solid rgba(148,163,184,.5); background: rgba(148,163,184,.08); }
     .card .t{
       color:var(--muted); font-size:12px;
       display:flex; align-items:center; justify-content:space-between; gap:8px;
@@ -200,19 +194,21 @@
     }
     .card .n{ font-size:22px; font-weight:950; margin-top:6px; }
 
-    /* table panel */
     .panel{
-      border:1px solid var(--line); background:var(--panel); border-radius:var(--radius);
-      overflow:hidden; display:flex; flex-direction:column;
+      border:1px solid var(--line);
+      background:var(--panel);
+      border-radius:var(--radius);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
       min-height:0;
-      flex:1;                 /* ✅ 남은 공간을 꽉 채움 = 테이블 스크롤 활성 */
       box-shadow:0 12px 40px rgba(0,0,0,.20);
     }
     .panelHead{
-      padding:12px 14px; border-bottom:1px solid var(--line);
+      padding:12px 14px;
+      border-bottom:1px solid var(--line);
       display:flex; align-items:center; justify-content:space-between; gap:10px;
       background: rgba(255,255,255,.02);
-      flex:0 0 auto;
     }
     .panelHead h2{ margin:0; font-size:14px; }
     .panelHead .count{
@@ -220,15 +216,18 @@
       padding:3px 10px; border-radius:999px; border:1px solid var(--line); white-space:nowrap;
     }
 
+    /* ✅ iOS에서 테이블 스크롤 확실히 */
     .tableScroll{
       overflow:auto;
-      -webkit-overflow-scrolling:touch;
-      overscroll-behavior:contain;
-      touch-action: pan-y;     /* ✅ iOS 터치 스크롤 안정화 */
-      flex:1; min-height:0;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-x pan-y;
+      max-height: 62vh;  /* ✅ 아이폰에서 리스트가 “영역 내 스크롤” 되도록 */
+    }
+    @media (max-width: 640px){
+      .tableScroll{ max-height: 56vh; }
     }
 
-    table{ width:100%; border-collapse:collapse; font-size:13px; }
+    table{ width:100%; border-collapse:collapse; font-size:13px; min-width: 720px; } /* ✅ 가로 부족하면 가로스크롤 */
     thead th{
       position:sticky; top:0; z-index:2;
       background: rgba(15,23,42,.92);
@@ -248,18 +247,21 @@
       white-space: nowrap;
     }
     tbody tr:hover{ background: rgba(148,163,184,.07); }
-    tbody tr.detailSelected{ background: rgba(59,130,246,.14); border-left:2px solid rgba(59,130,246,.85); }
-
     .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
     .muted{ color:var(--muted); }
     .numRight{ text-align:right; }
     .center{ text-align:center; }
-
     td.nameCell{
       max-width: 44vw;
       overflow:hidden;
       text-overflow: ellipsis;
     }
+
+    .sigWrap{ display:flex; gap:6px; justify-content:center; flex-wrap:wrap; }
+    .sig{ font-size:10px; padding:2px 8px; border-radius:999px; border:1px solid; font-weight:900; line-height:1.4; }
+    .sig.red{ color:#fecaca; background:rgba(239,68,68,.15); border-color:rgba(239,68,68,.30); }
+    .sig.yellow{ color:#fde68a; background:rgba(234,179,8,.15); border-color:rgba(234,179,8,.30); }
+    .sig.green{ color:#bbf7d0; background:rgba(34,197,94,.15); border-color:rgba(34,197,94,.30); }
 
     .selectDot{
       width:18px; height:18px;
@@ -272,14 +274,101 @@
       width:var(--tap); height:var(--tap); border-radius:12px;
     }
 
-    .sigWrap{ display:flex; gap:6px; justify-content:center; flex-wrap:wrap; }
-    .sig{ font-size:10px; padding:2px 8px; border-radius:999px; border:1px solid; font-weight:900; line-height:1.4; }
-    .sig.red{ color:#fecaca; background:rgba(239,68,68,.15); border-color:rgba(239,68,68,.30); }
-    .sig.yellow{ color:#fde68a; background:rgba(234,179,8,.15); border-color:rgba(234,179,8,.30); }
-    .sig.green{ color:#bbf7d0; background:rgba(34,197,94,.15); border-color:rgba(34,197,94,.30); }
+    /* ===== Perf small pills ===== */
+    .pillsRow{
+      display:flex; flex-wrap:wrap; gap:10px;
+      margin-bottom:14px;
+    }
+    .pillBig{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      padding:10px 12px;
+      border-radius:999px;
+      font-weight:900;
+      display:flex;
+      gap:8px;
+      align-items:center;
+      color: var(--txt);
+      white-space:nowrap;
+    }
+    .pillBig .k{ color: var(--muted); font-weight:800; }
+    .pillBig .v{ font-variant-numeric: tabular-nums; }
 
-    /* right detail */
-    .detailTop{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    /* ===== Alert Modal ===== */
+    .modal{
+      display:none;
+      position:fixed;
+      inset:0;
+      z-index:120;
+      background: rgba(0,0,0,.55);
+      padding: calc(16px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom)) 14px;
+    }
+    .modal.open{ display:block; }
+    .modalCard{
+      max-width:720px;
+      margin: 10vh auto 0 auto;
+      background: #f8fafc;
+      color:#0f172a;
+      border-radius:16px;
+      box-shadow:0 24px 80px rgba(0,0,0,.45);
+      overflow:hidden;
+    }
+    .modalHead{
+      padding:12px 14px;
+      font-weight:950;
+      border-bottom:1px solid rgba(15,23,42,.12);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .modalBody{
+      padding:14px;
+      line-height:1.55;
+      font-size:14px;
+      white-space:pre-wrap;
+    }
+    .modalFoot{
+      padding:12px 14px;
+      border-top:1px solid rgba(15,23,42,.12);
+      display:flex;
+      justify-content:flex-end;
+    }
+    .modalBtn{
+      border:1px solid rgba(15,23,42,.20);
+      background: transparent;
+      padding:10px 14px;
+      border-radius:12px;
+      font-weight:950;
+      cursor:pointer;
+    }
+
+    /* ===== Right detail (Screen tab only) ===== */
+    .screenWrap{
+      display:flex;
+      gap:14px;
+      align-items:stretch;
+      min-height:0;
+    }
+    .leftPane{ flex:1; min-width:0; display:flex; flex-direction:column; gap:14px; }
+    .rightPane{
+      width:380px;
+      border:1px solid var(--line);
+      background:var(--panel);
+      border-radius:var(--radius);
+      overflow:hidden;
+      display:none;
+      flex-direction:column;
+      min-height:0;
+      box-shadow:0 12px 40px rgba(0,0,0,.20);
+    }
+    .rightPane.open{ display:flex; }
+    @media (max-width:1024px){
+      .screenWrap{ flex-direction:column; }
+      .rightPane{ width:auto; }
+    }
+
+    .detailTop{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; border-bottom:1px solid var(--line); }
     .live{
       font-size:11px; padding:6px 10px; border-radius:999px;
       border:1px solid rgba(34,197,94,.35);
@@ -292,6 +381,7 @@
       border:1px solid var(--line); background:transparent; color:var(--muted);
       border-radius:12px; cursor:pointer; display:grid; place-items:center; font-size:16px;
     }
+    .detailBody{ padding:14px; overflow:auto; -webkit-overflow-scrolling:touch; }
     .detailH{ margin:6px 0 10px; font-size:22px; font-weight:950; }
     .boxGrid{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
     .box{ border:1px solid rgba(34,48,83,.7); background: rgba(15,23,42,.45); padding:10px; border-radius:12px; }
@@ -309,206 +399,140 @@
       animation: spin 0.8s linear infinite;
     }
     @keyframes spin{ to { transform: rotate(360deg);} }
-
-    /* ✅ 성과 탭: "페이지 전체 스크롤" + 하부 리스트 별도 스크롤 */
-    .perfPage{
-      height:100%;
-      display:flex;
-      flex-direction:column;
-      min-height:0;
-      overflow:auto;                 /* ✅ 페이지 전체 스크롤 */
-      -webkit-overflow-scrolling:touch;
-      overscroll-behavior:contain;
-      padding:14px;
-      gap:14px;
-    }
-    .perfTop{
-      display:flex; gap:10px; flex-wrap:wrap;
-    }
-    .miniPill{
-      border:1px solid var(--line); background:rgba(255,255,255,.03);
-      padding:10px 12px; border-radius:999px; font-size:13px; font-weight:900;
-    }
-    .perfGrid{
-      display:grid; gap:12px;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-    @media (min-width: 900px){
-      .perfGrid{ grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    }
-    .perfCard{
-      border:1px solid var(--line); background:var(--panel); border-radius:var(--radius);
-      padding:14px; min-height:96px;
-      display:flex; flex-direction:column; justify-content:space-between;
-    }
-    .perfCard .h{ display:flex; align-items:center; justify-content:space-between; color:var(--muted); font-size:12px; font-weight:900; }
-    .perfCard .v{ font-size:26px; font-weight:950; margin-top:6px; }
-
-    .perfPanel{
-      border:1px solid var(--line); background:var(--panel); border-radius:var(--radius);
-      overflow:hidden;
-      display:flex; flex-direction:column;
-      min-height:420px; /* ✅ 아이폰에서도 영역 확보 */
-    }
-    .perfPanelHead{
-      padding:12px 14px; border-bottom:1px solid var(--line);
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      background: rgba(255,255,255,.02);
-    }
-    .perfPanelHead h2{ margin:0; font-size:14px; }
-    .perfTableScroll{
-      flex:1; min-height:0;
-      overflow:auto; -webkit-overflow-scrolling:touch;
-      overscroll-behavior:contain;
-      touch-action: pan-y;
-    }
-
-    /* ✅ iOS Landscape 개선 */
-    @media (orientation: landscape) and (max-height: 520px){
-      header{ padding: 8px 12px; }
-      h1{ font-size:16px; }
-      .sub{ display:none; }
-
-      .app{
-        height: calc(100dvh - 50px - env(safe-area-inset-top));
-      }
-
-      .stats{
-        display:flex;
-        gap:10px;
-        overflow-x:auto;
-        overflow-y:hidden;
-        -webkit-overflow-scrolling:touch;
-        overscroll-behavior-x:contain;
-        padding-bottom:6px;
-      }
-      .card{
-        flex: 0 0 240px;
-        min-height: 64px;
-        padding:10px;
-      }
-      .card .n{ font-size:18px; margin-top:4px; }
-      .badgeIcon{ width:28px; height:28px; border-radius:12px; }
-    }
   </style>
 </head>
 
 <body>
-<header>
-  <div class="brand">
-    <div class="logo"></div>
-    <div style="min-width:0;">
-      <h1>퀀트 스크리너 <span class="sub">Single-file</span></h1>
-    </div>
-  </div>
+<div class="app">
 
-  <div class="toolbar">
-    <button class="iconbtn" id="settingsBtn" title="URL 설정">⚙️</button>
-    <span class="pill" id="lastUpdatedPill">갱신: -</span>
-    <span class="pill warn" id="statusPill">대기</span>
-    <button class="btn primary" id="refreshBtn"><span id="refreshIcon">↻</span> 데이터 갱신</button>
-  </div>
-</header>
+  <header>
+    <div class="headInner">
+      <div class="brand">
+        <div class="logo"></div>
+        <div style="min-width:0;">
+          <h1>퀀트 스크리너 <span class="sub">Single-file</span></h1>
+        </div>
+      </div>
 
-<div class="settings" id="settingsPanel">
-  <div class="inner">
-    <div class="row" style="justify-content:space-between;">
-      <div style="font-weight:950;">Google Sheet CSV URL 설정</div>
-      <button class="iconbtn" id="settingsCloseBtn" title="닫기">✕</button>
-    </div>
-
-    <div class="grid2">
-      <label><b style="color:#93c5fd;">ALL</b></label>
-      <input id="urlALL" type="text">
-      <label><b style="color:#bbf7d0;">TREND</b></label>
-      <input id="urlTREND" type="text">
-      <label><b style="color:#fde68a;">PULLBACK</b></label>
-      <input id="urlPULLBACK" type="text">
-      <label><b style="color:#fecaca;">BREAKOUT</b></label>
-      <input id="urlBREAKOUT" type="text">
-      <label><b style="color:#c7d2fe;">STORAGE</b></label>
-      <input id="urlSTORAGE" type="text">
-    </div>
-
-    <div class="row" style="justify-content:space-between;">
-      <div class="pill">성과 탭 기간: <b id="perfDaysLabel">10</b> 거래일</div>
-      <div style="display:flex; gap:10px; align-items:center;">
-        <button class="btn" id="daysMinusBtn">-</button>
-        <button class="btn" id="daysPlusBtn">+</button>
-        <button class="btn primary" id="saveAndRefreshBtn">URL 저장 및 새로고침</button>
+      <div class="toolbar">
+        <button class="iconbtn" id="settingsBtn" title="URL 설정">⚙️</button>
+        <span class="pill" id="lastUpdatedPill">갱신: -</span>
+        <span class="pill warn" id="statusPill">대기</span>
+        <button class="btn primary" id="refreshBtn"><span id="refreshIcon">↻</span> 데이터 갱신</button>
       </div>
     </div>
+  </header>
 
-    <div class="errorbox" id="errorBox" style="display:none;">
-      <div style="font-weight:950;">오류</div>
-      <div>
-        <div id="errorMsg" style="word-break:break-all;"></div>
-        <div class="muted" style="margin-top:6px;">
-          * 모든 시트가 “웹에 게시”되어 있고 URL이 <span class="mono">output=csv</span>로 끝나는지 확인
+  <!-- Settings Overlay -->
+  <div class="settings" id="settingsPanel" aria-hidden="true">
+    <div class="settingsCard">
+      <div class="settingsHead">
+        <div>Google Sheet CSV URL 설정</div>
+        <button class="iconbtn" id="settingsCloseBtn" title="닫기">✕</button>
+      </div>
+
+      <div class="settingsBody">
+        <div class="grid2">
+          <label><b style="color:#93c5fd;">ALL</b></label>
+          <input id="urlALL" type="text">
+          <label><b style="color:#bbf7d0;">TREND</b></label>
+          <input id="urlTREND" type="text">
+          <label><b style="color:#fde68a;">PULLBACK</b></label>
+          <input id="urlPULLBACK" type="text">
+          <label><b style="color:#fecaca;">BREAKOUT</b></label>
+          <input id="urlBREAKOUT" type="text">
+
+          <label><b style="color:#a7f3d0;">STORAGE</b></label>
+          <input id="urlSTORAGE" type="text">
+        </div>
+
+        <div class="row" style="justify-content:flex-end;">
+          <button class="btn primary" id="saveAndRefreshBtn">URL 저장 및 새로고침</button>
+        </div>
+
+        <div class="errorbox" id="errorBox" style="display:none;">
+          <div style="font-weight:950;">오류</div>
+          <div>
+            <div id="errorMsg" style="word-break:break-all;"></div>
+            <div class="muted" style="margin-top:6px;">
+              * 시트가 “웹에 게시”되어 있고 URL이 <span class="mono">output=csv</span>로 끝나는지 확인
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
 
-<div class="app">
-  <div class="tabbar">
-    <button class="tabbtn active" id="tabCatch"><span>🔎</span> 포착 <span class="muted">Screen</span></button>
-    <button class="tabbtn" id="tabPerf"><span>📊</span> 성과 <span class="muted">Perf</span></button>
+  <!-- How Modal -->
+  <div class="modal" id="howModal" aria-hidden="true">
+    <div class="modalCard">
+      <div class="modalHead">
+        <div>[How: Score 산식]</div>
+        <button class="modalBtn" id="howCloseTop">닫기</button>
+      </div>
+      <div class="modalBody" id="howBody"></div>
+      <div class="modalFoot">
+        <button class="modalBtn" id="howCloseBtn">닫기</button>
+      </div>
+    </div>
   </div>
 
-  <div class="pageWrap">
-    <!-- =========================
-         포착 탭 (기존)
-    ========================== -->
-    <div class="page active" id="pageCatch">
-      <div class="wrap">
-        <div class="left" id="leftPane">
-          <div class="stats">
-            <div class="card active" data-filter="ALL">
-              <div class="t"><span>전체 포착</span><span class="badgeIcon">🔎</span></div>
-              <div class="n" id="statTotal">-</div>
-            </div>
+  <main>
+    <div class="tabs">
+      <button class="tabbtn active" id="tabScreen">🔎 포착</button>
+      <button class="tabbtn" id="tabPerf">📊 성과</button>
+    </div>
 
-            <div class="card" data-filter="TREND">
-              <div class="t"><span>추세 추종</span><span class="badgeIcon" style="border-color:rgba(34,197,94,.35); color:#bbf7d0;">📈</span></div>
-              <div class="n" id="statTrend">-</div>
-            </div>
+    <!-- ========== SCREEN TAB ========== -->
+    <section id="screenSection">
+      <div class="stats">
+        <div class="card clickable" data-filter="ALL">
+          <div class="t"><span>전체 포착</span><span class="badgeIcon">🔎</span></div>
+          <div class="n" id="statTotal">-</div>
+        </div>
 
-            <div class="card" data-filter="PULLBACK">
-              <div class="t"><span>눌림목</span><span class="badgeIcon" style="border-color:rgba(234,179,8,.35); color:#fde68a;">🟡</span></div>
-              <div class="n" id="statPullback">-</div>
-            </div>
+        <div class="card clickable" data-filter="TREND">
+          <div class="t"><span>추세 추종</span><span class="badgeIcon" style="border-color:rgba(34,197,94,.35); color:#bbf7d0;">📈</span></div>
+          <div class="n" id="statTrend">-</div>
+        </div>
 
-            <div class="card" data-filter="BREAKOUT">
-              <div class="t"><span>박스권 돌파</span><span class="badgeIcon" style="border-color:rgba(239,68,68,.35); color:#fecaca;">🚀</span></div>
-              <div class="n" id="statBreakout">-</div>
-            </div>
+        <div class="card clickable" data-filter="PULLBACK">
+          <div class="t"><span>눌림목</span><span class="badgeIcon" style="border-color:rgba(234,179,8,.35); color:#fde68a;">🟡</span></div>
+          <div class="n" id="statPullback">-</div>
+        </div>
 
-            <div class="card" data-filter="FAV">
-              <div class="t"><span>찜 목록</span><span class="badgeIcon" style="border-color:rgba(234,179,8,.35); color:#fde68a;">⭐</span></div>
-              <div class="n" id="statFav">0</div>
-            </div>
-          </div>
+        <div class="card clickable" data-filter="BREAKOUT">
+          <div class="t"><span>박스권 돌파</span><span class="badgeIcon" style="border-color:rgba(239,68,68,.35); color:#fecaca;">🚀</span></div>
+          <div class="n" id="statBreakout">-</div>
+        </div>
 
+        <div class="card clickable" data-filter="FAV">
+          <div class="t"><span>찜 목록</span><span class="badgeIcon" style="border-color:rgba(234,179,8,.35); color:#fde68a;">⭐</span></div>
+          <div class="n" id="statFav">0</div>
+        </div>
+      </div>
+
+      <div class="screenWrap">
+        <div class="leftPane">
           <div class="panel">
             <div class="panelHead">
               <h2>검출 종목 리스트 (<span id="filterLabel">ALL</span>)</h2>
               <div class="count"><span id="rowCount">0</span>건</div>
             </div>
 
-            <div class="tableScroll" id="catchTableScroll">
+            <!-- ✅ 세로 스크롤은 여기서 -->
+            <div class="tableScroll" id="screenTableScroll">
               <table>
                 <thead>
                   <tr>
-                    <th>종목코드</th>
-                    <th>종목명</th>
-                    <th class="center">선택</th>
-                    <th class="numRight" style="display:none;" id="thClose">현재가</th>
-                    <th class="numRight">거래대금</th>
-                    <th class="center" style="display:none;" id="thRSI">RSI</th>
-                    <th class="center" style="display:none;" id="thStoch">STOCH K</th>
-                    <th class="center">Signal</th>
+                    <th>CODE</th>
+                    <th>NAME</th>
+                    <th class="center">FAV</th>
+                    <th class="numRight">CLOSE</th>
+                    <th class="numRight">TURNOVER</th>
+                    <th class="center">RSI</th>
+                    <th class="center">STOCH K</th>
+                    <th class="center">SIGNAL</th>
                   </tr>
                 </thead>
                 <tbody id="tbody">
@@ -519,7 +543,7 @@
           </div>
         </div>
 
-        <aside class="right" id="rightPane">
+        <aside class="rightPane" id="rightPane">
           <div class="detailTop">
             <div>
               <div class="muted" id="detailMeta">-</div>
@@ -531,120 +555,122 @@
             </div>
           </div>
 
-          <div class="boxGrid">
-            <div class="box">
-              <div class="l">현재가</div>
-              <div class="v"><span id="detailClose">-</span> <span class="muted" style="font-size:12px;">원</span></div>
+          <div class="detailBody">
+            <div class="boxGrid">
+              <div class="box">
+                <div class="l">현재가</div>
+                <div class="v"><span id="detailClose">-</span> <span class="muted" style="font-size:12px;">원</span></div>
+              </div>
+              <div class="box">
+                <div class="l">RSI (14)</div>
+                <div class="v" id="detailRSI">-</div>
+              </div>
+              <div class="box">
+                <div class="l">Stoch K</div>
+                <div class="v" id="detailStoch">-</div>
+              </div>
+              <div class="box">
+                <div class="l">거래량</div>
+                <div class="v" id="detailVol">-</div>
+              </div>
             </div>
-            <div class="box">
-              <div class="l">RSI (14)</div>
-              <div class="v" id="detailRSI">-</div>
-            </div>
-            <div class="box">
-              <div class="l">Stoch K</div>
-              <div class="v" id="detailStoch">-</div>
-            </div>
-            <div class="box">
-              <div class="l">거래량</div>
-              <div class="v" id="detailVol">-</div>
-            </div>
-          </div>
 
-          <div class="analysis">
-            <h3>⚠️ 포착 신호 분석</h3>
-            <ul id="detailSignals"></ul>
-            <div class="foot" id="detailFoot">-</div>
-          </div>
+            <div class="analysis">
+              <h3>⚠️ 포착 신호 분석</h3>
+              <ul id="detailSignals"></ul>
+              <div class="foot" id="detailFoot">-</div>
+            </div>
 
-          <div class="analysis" style="margin-top:12px;">
-            <h3>📈 실시간 차트</h3>
-            <iframe
-              id="tvFrame"
-              style="width:100%; height:240px; border:0; border-radius:10px;"
-              loading="lazy"
-              allowfullscreen
-            ></iframe>
+            <div class="analysis" style="margin-top:12px;">
+              <h3>📈 실시간 차트</h3>
+              <iframe
+                id="tvFrame"
+                style="width:100%; height:240px; border:0; border-radius:10px;"
+                loading="lazy"
+                allowfullscreen
+              ></iframe>
+            </div>
           </div>
         </aside>
       </div>
-    </div>
+    </section>
 
-    <!-- =========================
-         성과 탭 (스크롤 2단)
-    ========================== -->
-    <div class="page" id="pagePerf">
-      <div class="perfPage" id="perfScroll">
-        <div class="perfTop">
-          <div class="miniPill">최근 <b id="perfDaysPill">10</b> 거래일</div>
-          <div class="miniPill">표본 <b id="perfSample">0</b></div>
-          <div class="miniPill">평균 <b id="perfAvg">0.00%</b></div>
-          <div class="miniPill">중앙값 <b id="perfMed">0.00%</b></div>
-          <div class="miniPill">승률 <b id="perfWin">0.0%</b></div>
+    <!-- ========== PERF TAB ========== -->
+    <section id="perfSection" style="display:none;">
+      <div class="pillsRow">
+        <div class="pillBig"><span class="k">최근</span><span class="v" id="perfN">-</span><span class="k">거래일</span></div>
+        <div class="pillBig"><span class="k">표본</span><span class="v" id="perfSample">-</span></div>
+        <div class="pillBig"><span class="k">평균</span><span class="v" id="perfAvg">-</span></div>
+        <div class="pillBig"><span class="k">중앙값</span><span class="v" id="perfMedian">-</span></div>
+        <div class="pillBig"><span class="k">승률</span><span class="v" id="perfWin">-</span></div>
+        <div class="pillBig"><span class="k">Best</span><span class="v" id="perfBest">-</span></div>
+        <div class="pillBig"><span class="k">Worst</span><span class="v" id="perfWorst">-</span></div>
+      </div>
+
+      <div class="stats" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+        <div class="card clickable" id="scoreCard">
+          <div class="t"><span>신뢰도 보드</span><span class="badgeIcon">🧠</span></div>
+          <div class="n">Score</div>
+          <div class="muted" style="margin-top:6px; font-size:12px;">최근 N거래일 기준</div>
         </div>
 
-        <div class="perfGrid">
-          <div class="perfCard">
-            <div class="h"><span>신뢰도 보드</span><span>🧠</span></div>
-            <div class="v">Score</div>
-            <div class="muted" style="font-size:12px;">최근 N거래일 기준</div>
-          </div>
-          <div class="perfCard">
-            <div class="h"><span>TOP 성과</span><span>🏆</span></div>
-            <div class="v" id="perfTop">-</div>
-            <div class="muted" style="font-size:12px;">Return / Dn 기준</div>
-          </div>
-          <div class="perfCard">
-            <div class="h"><span>Worst 성과</span><span>🧯</span></div>
-            <div class="v" id="perfWorst">-</div>
-            <div class="muted" style="font-size:12px;">리스크 확인</div>
-          </div>
-          <div class="perfCard" id="howCard" style="cursor:pointer;">
-            <div class="h"><span>설명</span><span>ℹ️</span></div>
-            <div class="v">How</div>
-            <div class="muted" style="font-size:12px;">점수 산식</div>
-          </div>
+        <div class="card clickable" id="topCard">
+          <div class="t"><span>TOP 성과</span><span class="badgeIcon" style="border-color:rgba(234,179,8,.35);">🏆</span></div>
+          <div class="n" id="topName">-</div>
+          <div class="muted" style="margin-top:6px; font-size:12px;">Return 기준</div>
         </div>
 
-        <div class="perfPanel">
-          <div class="perfPanelHead">
-            <h2>성과 리스트 (Storage)</h2>
-            <div class="count"><span id="perfRowCount">0</span>건</div>
-          </div>
-          <div class="perfTableScroll" id="perfTableScroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>DetectDate</th>
-                  <th>Code</th>
-                  <th>Name</th>
-                  <th>Signal_Type</th>
-                  <th class="numRight">Entry</th>
-                  <th class="numRight">D1</th>
-                  <th class="numRight">D3</th>
-                  <th class="numRight">D5</th>
-                  <th class="numRight">D7</th>
-                  <th class="numRight">D9</th>
-                </tr>
-              </thead>
-              <tbody id="perfTbody">
-                <tr><td colspan="10" class="center muted" style="padding:28px;">Storage 로딩 중...</td></tr>
-              </tbody>
-            </table>
-          </div>
+        <div class="card clickable" id="worstCard">
+          <div class="t"><span>Worst 성과</span><span class="badgeIcon" style="border-color:rgba(239,68,68,.35);">🥤</span></div>
+          <div class="n" id="worstName">-</div>
+          <div class="muted" style="margin-top:6px; font-size:12px;">Return 기준</div>
         </div>
 
-        <div class="muted" style="font-size:12px; padding-bottom: env(safe-area-inset-bottom);">
-          * 성과탭은 전체 스크롤 가능, 하단 테이블도 별도 스크롤 가능하게 구성됨
+        <div class="card clickable" id="howCard">
+          <div class="t"><span>설명</span><span class="badgeIcon" style="border-color:rgba(148,163,184,.4);">ℹ️</span></div>
+          <div class="n">How</div>
+          <div class="muted" style="margin-top:6px; font-size:12px;">점수 산식</div>
         </div>
       </div>
-    </div>
 
-  </div>
+      <div class="panel" style="margin-top:14px;">
+        <div class="panelHead">
+          <h2>성과 리스트 (Storage)</h2>
+          <div class="count"><span id="perfRowCount">0</span>건</div>
+        </div>
+
+        <!-- ✅ 성과탭도 “리스트는 영역 내 세로 스크롤 + 가로 스크롤” -->
+        <div class="tableScroll" id="perfTableScroll" style="max-height: 62vh;">
+          <table>
+            <thead>
+              <tr>
+                <th>DETECTDATE</th>
+                <th>CODE</th>
+                <th>NAME</th>
+                <th>SIGNAL_TYPE</th>
+                <th class="numRight">ENTRY</th>
+                <th class="numRight">D1</th>
+                <th class="numRight">D3</th>
+                <th class="numRight">D5</th>
+                <th class="numRight">D7</th>
+                <th class="numRight">D9</th>
+                <th class="numRight">SCORE</th>
+              </tr>
+            </thead>
+            <tbody id="perfTbody">
+              <tr><td colspan="11" class="center muted" style="padding:28px;">Storage 데이터 로딩 중...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
 </div>
 
 <script>
 /** =========================
- *  CONFIG
+ *  CONFIG (URLs)
  *  ========================= */
 const initialUrls = {
   ALL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=0&single=true&output=csv",
@@ -655,19 +681,15 @@ const initialUrls = {
 };
 
 const LS_KEY = "quant_screener_urls_v4";
-const FAV_KEY = "quant_screener_favs_v2";
-const PERF_DAYS_KEY = "quant_screener_perf_days_v1";
+const FAV_KEY = "quant_screener_favs_v2"; // ✅ 버전 올려서 iPad ‘유령 1’ 원천 차단
 
 let sheetUrls = loadUrls();
+
 let data = [];
 let filterType = "ALL";
 let detailStock = null;
 
-// ✅ 찜 목록 (로컬)
-let selectedCodes = loadFavs();
-
-// ✅ 성과 기간 (거래일)
-let perfDays = loadPerfDays();
+let storageRows = []; // perf
 
 const $ = (id) => document.getElementById(id);
 const settingsPanel = $("settingsPanel");
@@ -675,7 +697,39 @@ const statusPill = $("statusPill");
 const lastUpdatedPill = $("lastUpdatedPill");
 const tbody = $("tbody");
 const rightPane = $("rightPane");
+const perfTbody = $("perfTbody");
 
+const tabScreen = $("tabScreen");
+const tabPerf = $("tabPerf");
+const screenSection = $("screenSection");
+const perfSection = $("perfSection");
+
+/** ===== FAV persistence ===== */
+let selectedCodes = loadFavs();
+
+function loadFavs(){
+  try{
+    const raw = localStorage.getItem(FAV_KEY);
+    if(!raw) return new Set();
+    const arr = JSON.parse(raw);
+    const out = new Set();
+    (Array.isArray(arr) ? arr : []).forEach(x=>{
+      const c = pad6(x);
+      if(/^\d{6}$/.test(c)) out.add(c);
+    });
+    return out;
+  }catch{
+    return new Set();
+  }
+}
+function saveFavs(){
+  // ✅ 정규화 저장(유령값 제거)
+  const clean = Array.from(selectedCodes).map(pad6).filter(x=>/^\d{6}$/.test(x));
+  localStorage.setItem(FAV_KEY, JSON.stringify(clean));
+  $("statFav").textContent = String(clean.length);
+}
+
+/** ===== UI helpers ===== */
 function setStatus(type, msg){
   statusPill.classList.remove("ok","warn","err");
   statusPill.classList.add(type);
@@ -710,7 +764,7 @@ function escapeHtml(str){
   }[s]));
 }
 
-/** CSV robust parser */
+/** ===== CSV robust parser ===== */
 function parseCSVRows(text){
   const rows = [];
   let row = [];
@@ -743,6 +797,7 @@ function toBool(v){
   return (s === "true" || s === "1" || s === "y" || s === "yes" || s === "t");
 }
 
+/** ===== Parse ALL sheet ===== */
 function parseAllSheet(text){
   const rows = parseCSVRows(text).filter(r => r.some(x => String(x).trim() !== ""));
   if(rows.length < 2) return [];
@@ -797,96 +852,198 @@ function parseSignalSheetToSet(text){
   return set;
 }
 
-/** ✅ Storage parser */
-function parseStorageSheet(text){
+/** ===== Parse STORAGE sheet ===== */
+function parseStorage(text){
   const rows = parseCSVRows(text).filter(r => r.some(x => String(x).trim() !== ""));
   if(rows.length < 2) return [];
 
   const headers = rows[0].map(h => String(h).trim());
   const idx = (name) => headers.findIndex(h => h === name);
 
-  const iDetect = idx("DetectDate");
+  // 기대 헤더: Code, Name, Market, DetectDate, Signal_Type, EntryPrice, D1,D3,D5,D7,D9 ...
   const iCode = idx("Code");
   if(iCode < 0) return [];
 
   const iName = idx("Name");
+  const iDetect = idx("DetectDate");
   const iSigType = idx("Signal_Type");
   const iEntry = idx("EntryPrice");
+
   const iD1 = idx("D1"), iD3 = idx("D3"), iD5 = idx("D5"), iD7 = idx("D7"), iD9 = idx("D9");
 
   const out = [];
   for(const r of rows.slice(1)){
     const code = pad6(r[iCode]);
     if(!/^\d{6}$/.test(code)) continue;
-    out.push({
-      DetectDate: iDetect >= 0 ? String(r[iDetect] ?? "").trim() : "",
+
+    const detectRaw = String(iDetect >= 0 ? (r[iDetect] ?? "") : "").trim();
+    // ✅ 날짜만 쓰게(DetectDate가 혹시 "YYYY-MM-DD 0:00" 섞여도 앞 10자)
+    const detectDate = detectRaw.length >= 10 ? detectRaw.slice(0,10) : detectRaw;
+
+    const rowObj = {
+      DetectDate: detectDate,
       Code: code,
-      Name: iName >= 0 ? String(r[iName] ?? "").trim() : "",
-      Signal_Type: iSigType >= 0 ? String(r[iSigType] ?? "").trim() : "",
-      EntryPrice: iEntry >= 0 ? toNum(r[iEntry]) : 0,
-      D1: iD1 >= 0 ? toNum(r[iD1]) : NaN,
-      D3: iD3 >= 0 ? toNum(r[iD3]) : NaN,
-      D5: iD5 >= 0 ? toNum(r[iD5]) : NaN,
-      D7: iD7 >= 0 ? toNum(r[iD7]) : NaN,
-      D9: iD9 >= 0 ? toNum(r[iD9]) : NaN,
-    });
+      Name: iName>=0 ? String(r[iName] ?? "").trim() : "",
+      Signal_Type: iSigType>=0 ? String(r[iSigType] ?? "").trim() : "",
+      Entry: iEntry>=0 ? toNum(r[iEntry]) : 0,
+      D1: iD1>=0 ? toNum(r[iD1]) : NaN,
+      D3: iD3>=0 ? toNum(r[iD3]) : NaN,
+      D5: iD5>=0 ? toNum(r[iD5]) : NaN,
+      D7: iD7>=0 ? toNum(r[iD7]) : NaN,
+      D9: iD9>=0 ? toNum(r[iD9]) : NaN,
+    };
+    out.push(rowObj);
   }
   return out;
 }
 
-/** ✅ Perf days */
-function loadPerfDays(){
-  const raw = localStorage.getItem(PERF_DAYS_KEY);
-  const n = Number(raw);
-  return Number.isFinite(n) && n >= 5 && n <= 60 ? n : 10;
-}
-function savePerfDays(){
-  localStorage.setItem(PERF_DAYS_KEY, String(perfDays));
-  $("perfDaysLabel").textContent = String(perfDays);
-  $("perfDaysPill").textContent = String(perfDays);
+/** ===== Score (5항, D1/D3 비중 크게) =====
+ *  - weights sum = 1.00
+ */
+const W = { D1:0.34, D3:0.26, D5:0.18, D7:0.12, D9:0.10 };
+
+function isFiniteNum(x){ return Number.isFinite(Number(x)); }
+function pickNum(x){ const n = Number(x); return Number.isFinite(n) ? n : NaN; }
+
+function rowScore(r){
+  const d1 = pickNum(r.D1), d3 = pickNum(r.D3), d5 = pickNum(r.D5), d7 = pickNum(r.D7), d9 = pickNum(r.D9);
+  // NaN은 제외하고 가중치 재정규화
+  const pairs = [
+    ["D1", d1], ["D3", d3], ["D5", d5], ["D7", d7], ["D9", d9]
+  ].filter(([k,v]) => Number.isFinite(v));
+  if(!pairs.length) return NaN;
+  const wSum = pairs.reduce((s,[k]) => s + W[k], 0);
+  const score = pairs.reduce((s,[k,v]) => s + (W[k]/wSum)*v, 0);
+  return score;
 }
 
-/** FAV persistence */
-function loadFavs(){
-  try{
-    const raw = localStorage.getItem(FAV_KEY);
-    if(!raw) return new Set();
-    const arr = JSON.parse(raw);
-    const set = new Set((Array.isArray(arr) ? arr : [])
-      .map(pad6)
-      .filter(x => /^\d{6}$/.test(x))
-      .filter(x => x !== "000000")   // ✅ 유령 찜 방지
-    );
-    return set;
-  }catch{
-    return new Set();
-  }
-}
-function saveFavs(){
-  localStorage.setItem(FAV_KEY, JSON.stringify(Array.from(selectedCodes)));
-  $("statFav").textContent = String(selectedCodes.size);
-}
-function reconcileFavsWithData(){
-  // ✅ 현재 로딩된 종목 코드에 존재하는 찜만 유지 (아이패드에서 '1' 유령 제거)
-  const codeSet = new Set(data.map(d => d.Code));
-  selectedCodes = new Set(Array.from(selectedCodes).filter(c => codeSet.has(c)));
-  saveFavs();
+function pct(x){
+  const n = Number(x);
+  if(!Number.isFinite(n)) return "-";
+  return (n*100).toFixed(2) + "%";
 }
 
+/** ===== Fetch ===== */
 async function fetchText(url){
   const res = await fetch(bust(url), { cache:"no-store" });
   if(!res.ok) throw new Error(`HTTP ${res.status}`);
   return await res.text();
 }
 
-/** ====== UI helpers ====== */
-function renderEmpty(msg){
+/** ===== Screen Data Fetch ===== */
+async function fetchScreenData(){
+  if(!sheetUrls.ALL){
+    openSettings(true);
+    showError("ALL 시트 URL을 먼저 입력해줘.");
+    return;
+  }
+
+  hideError();
+  setStatus("warn","로딩중...");
+  $("refreshBtn").disabled = true;
+  $("refreshIcon").innerHTML = '<span class="spin"></span>';
+
+  detailStock = null;
+  closeDetail();
+
+  try{
+    const [allText, trendText, pullText, breakText] = await Promise.all([
+      fetchText(sheetUrls.ALL),
+      sheetUrls.TREND ? fetchText(sheetUrls.TREND).catch(()=>null) : Promise.resolve(null),
+      sheetUrls.PULLBACK ? fetchText(sheetUrls.PULLBACK).catch(()=>null) : Promise.resolve(null),
+      sheetUrls.BREAKOUT ? fetchText(sheetUrls.BREAKOUT).catch(()=>null) : Promise.resolve(null)
+    ]);
+
+    const allData = parseAllSheet(allText);
+    if(!allData.length) throw new Error("ALL 시트 파싱 실패. 헤더/데이터 형식을 확인해줘.");
+
+    const trendSet = trendText ? parseSignalSheetToSet(trendText) : null;
+    const pullSet  = pullText  ? parseSignalSheetToSet(pullText)  : null;
+    const breakSet = breakText ? parseSignalSheetToSet(breakText) : null;
+
+    data = allData.map(s => {
+      if(trendSet) s.Trend_Signal = trendSet.has(s.Code) || s.Trend_Signal;
+      if(pullSet)  s.Pullback_Signal = pullSet.has(s.Code) || s.Pullback_Signal;
+      if(breakSet) s.Breakout_Signal = breakSet.has(s.Code) || s.Breakout_Signal;
+      return s;
+    });
+
+    // ✅ 유령 찜 정리: 현재 로딩된 코드에 존재하는 것만 남김 (iPad ‘1’ 방지)
+    const validCodes = new Set(data.map(x=>x.Code));
+    selectedCodes = new Set(Array.from(selectedCodes).filter(c => validCodes.has(c)));
+    saveFavs();
+
+    data.sort((a,b) => {
+      if(b.Breakout_Signal !== a.Breakout_Signal) return b.Breakout_Signal ? 1 : -1;
+      if(b.Pullback_Signal !== a.Pullback_Signal) return b.Pullback_Signal ? 1 : -1;
+      if(b.Trend_Signal !== a.Trend_Signal) return b.Trend_Signal ? 1 : -1;
+      return toNum(b.Turnover) - toNum(a.Turnover);
+    });
+
+    updateStats();
+    renderScreenTable();
+
+    lastUpdatedPill.textContent = "갱신: " + new Date().toLocaleTimeString("ko-KR");
+    setStatus("ok","최신 반영");
+    openSettings(false);
+
+  }catch(e){
+    data = [];
+    updateStats();
+    renderScreenEmpty("데이터 로딩 실패: " + (e.message || String(e)));
+    setStatus("err","실패");
+    showError(e.message || String(e));
+  }finally{
+    $("refreshBtn").disabled = false;
+    $("refreshIcon").textContent = "↻";
+  }
+}
+
+/** ===== Perf Data Fetch ===== */
+async function fetchPerfData(){
+  if(!sheetUrls.STORAGE){
+    renderPerfEmpty("Storage CSV URL을 확인해줘. (설정 ⚙️ → STORAGE)");
+    return;
+  }
+  try{
+    const text = await fetchText(sheetUrls.STORAGE);
+    const rows = parseStorage(text);
+    if(!rows.length){
+      renderPerfEmpty("Storage 데이터가 비어있거나 파싱 실패. 헤더/데이터를 확인해줘.");
+      return;
+    }
+    // Score 계산
+    storageRows = rows.map(r => ({...r, Score: rowScore(r)}));
+
+    // 최신순
+    storageRows.sort((a,b) => (b.DetectDate||"").localeCompare(a.DetectDate||""));
+
+    renderPerfTable();
+    computePerfSummary();
+
+  }catch(e){
+    renderPerfEmpty("Storage 로딩 실패: " + (e.message || String(e)));
+  }
+}
+
+/** ===== Screen Rendering ===== */
+function getFiltered(){
+  if(filterType === "TREND") return data.filter(x => x.Trend_Signal);
+  if(filterType === "PULLBACK") return data.filter(x => x.Pullback_Signal);
+  if(filterType === "BREAKOUT") return data.filter(x => x.Breakout_Signal);
+  if(filterType === "FAV") return data.filter(x => selectedCodes.has(x.Code));
+  return data;
+}
+function updateStats(){
+  $("statTotal").textContent = fmt(data.length);
+  $("statTrend").textContent = fmt(data.filter(x=>x.Trend_Signal).length);
+  $("statPullback").textContent = fmt(data.filter(x=>x.Pullback_Signal).length);
+  $("statBreakout").textContent = fmt(data.filter(x=>x.Breakout_Signal).length);
+  $("statFav").textContent = String(selectedCodes.size);
+}
+function renderScreenEmpty(msg){
   tbody.innerHTML = `<tr><td colspan="8" class="center muted" style="padding:28px;">${escapeHtml(msg)}</td></tr>`;
   $("rowCount").textContent = "0";
-}
-function fmtPct(x){
-  if(!Number.isFinite(x)) return "-";
-  return (x*100).toFixed(2) + "%";
 }
 function rsiColor(v){
   const x = Number(v)||0;
@@ -900,48 +1057,22 @@ function stochColor(v){
   if(x >= 80) return "#fb7185";
   return "#94a3b8";
 }
-
-/** =========================
- *  포착 탭 렌더
- *  ========================= */
-function updateStats(){
-  $("statTotal").textContent = fmt(data.length);
-  $("statTrend").textContent = fmt(data.filter(x=>x.Trend_Signal).length);
-  $("statPullback").textContent = fmt(data.filter(x=>x.Pullback_Signal).length);
-  $("statBreakout").textContent = fmt(data.filter(x=>x.Breakout_Signal).length);
-  $("statFav").textContent = String(selectedCodes.size);
-}
-function getFiltered(){
-  if(filterType === "TREND") return data.filter(x => x.Trend_Signal);
-  if(filterType === "PULLBACK") return data.filter(x => x.Pullback_Signal);
-  if(filterType === "BREAKOUT") return data.filter(x => x.Breakout_Signal);
-  if(filterType === "FAV") return data.filter(x => selectedCodes.has(x.Code));
-  return data;
-}
-
-function renderTable(){
+function renderScreenTable(){
   const rows = getFiltered();
   $("filterLabel").textContent = filterType;
   $("rowCount").textContent = String(rows.length);
 
   if(filterType === "FAV" && selectedCodes.size === 0){
-    renderEmpty("찜한 종목이 없어. 리스트에서 노란 점으로 찍어줘 ⭐");
+    renderScreenEmpty("찜한 종목이 없어. 리스트에서 노란 점으로 찍어줘 ⭐");
     return;
   }
   if(!rows.length){
-    renderEmpty("조건에 맞는 종목이 없어.");
+    renderScreenEmpty("조건에 맞는 종목이 없어.");
     return;
   }
 
-  const isWide = window.innerWidth >= 640;
-  $("thClose").style.display = isWide ? "table-cell" : "none";
-  $("thRSI").style.display = isWide ? "table-cell" : "none";
-  $("thStoch").style.display = isWide ? "table-cell" : "none";
-
   tbody.innerHTML = rows.map((s) => {
-    const isDetail = detailStock && detailStock.Code === s.Code;
     const isMulti = selectedCodes.has(s.Code);
-
     const turnoverEok = Math.round(toNum(s.Turnover) / 100000000);
     const sigs = [
       s.Breakout_Signal ? `<span class="sig red">돌파</span>` : "",
@@ -950,7 +1081,7 @@ function renderTable(){
     ].join("");
 
     return `
-      <tr class="${isDetail ? "detailSelected" : ""}" data-code="${s.Code}">
+      <tr data-code="${s.Code}">
         <td class="mono muted">${escapeHtml(s.Code)}</td>
         <td class="nameCell">${escapeHtml(s.Name || "")}</td>
 
@@ -960,17 +1091,17 @@ function renderTable(){
           </span>
         </td>
 
-        <td class="numRight mono" style="display:${isWide ? "table-cell" : "none"}; color:#fb7185;">
+        <td class="numRight mono" style="color:#fb7185;">
           ${fmt(Math.round(toNum(s.Close)))}
         </td>
 
         <td class="numRight mono">${fmt(turnoverEok)}억</td>
 
-        <td class="center mono" style="display:${isWide ? "table-cell" : "none"}; color:${rsiColor(s.RSI14)};">
+        <td class="center mono" style="color:${rsiColor(s.RSI14)};">
           ${s.RSI14 ? Number(s.RSI14).toFixed(1) : "-"}
         </td>
 
-        <td class="center mono" style="display:${isWide ? "table-cell" : "none"}; color:${stochColor(s.Stoch_K)};">
+        <td class="center mono" style="color:${stochColor(s.Stoch_K)};">
           ${s.Stoch_K ? Number(s.Stoch_K).toFixed(1) : "-"}
         </td>
 
@@ -980,6 +1111,7 @@ function renderTable(){
   }).join("");
 }
 
+/** ===== Detail ===== */
 function openDetail(stock){
   detailStock = stock;
 
@@ -992,9 +1124,9 @@ function openDetail(stock){
 
   const ul = $("detailSignals");
   ul.innerHTML = "";
-  if(stock.Breakout_Signal) ul.innerHTML += `<li><b>박스권 돌파:</b> 거래량 + 모멘텀을 동반한 상단 돌파 가능성</li>`;
+  if(stock.Breakout_Signal) ul.innerHTML += `<li><b>박스권 돌파:</b> 거래량 + 모멘텀 동반 상단 돌파 가능성</li>`;
   if(stock.Pullback_Signal) ul.innerHTML += `<li><b>눌림목:</b> 상승 추세 중 조정 이후 재시동 가능성</li>`;
-  if(stock.Trend_Signal) ul.innerHTML += `<li><b>추세 추종:</b> 상승 추세 지속 + 거래량 확대 가능성</li>`;
+  if(stock.Trend_Signal) ul.innerHTML += `<li><b>추세 추종:</b> 추세 지속 + 거래량 확대 가능성</li>`;
   if(!ul.innerHTML) ul.innerHTML = `<li class="muted">신호 정보 없음</li>`;
 
   const eok = Math.round(toNum(stock.Turnover) / 100000000);
@@ -1023,208 +1155,116 @@ function toggleDetailByCode(code){
   if(detailStock && detailStock.Code === code) closeDetail();
   else openDetail(stock);
 }
-
 function toggleSelect(code){
   if(selectedCodes.has(code)) selectedCodes.delete(code);
   else selectedCodes.add(code);
   saveFavs();
-  renderTable();
+  renderScreenTable();
+  updateStats();
 }
 
-/** =========================
- *  성과 탭 렌더
- *  ========================= */
-function pctCell(x){
-  if(!NumberNumber(x)) return `<span class="muted">-</span>`;
-  const v = x;
-  const color = v >= 0 ? "#a7f3d0" : "#fecaca";
-  return `<span style="color:${color}; font-weight:950;">${(v*100).toFixed(2)}%</span>`;
+/** ===== Perf Rendering ===== */
+function renderPerfEmpty(msg){
+  $("perfRowCount").textContent = "0";
+  perfTbody.innerHTML = `<tr><td colspan="11" class="center muted" style="padding:28px;">${escapeHtml(msg)}</td></tr>`;
 }
-function isFiniteNumber(x){ return Number.isFinite(x); }
-function perfPickReturn(row){
-  // 최근 N거래일 기준 집계를 위해: D9> D7> D5> D3> D1 순으로 "가장 먼 것"이 있으면 사용
-  const order = ["D9","D7","D5","D3","D1"];
-  for(const k of order){
-    const v = Number(row[k]);
-    if(Number.isFinite(v)) return v;
-  }
-  return NaN;
-}
-function renderPerf(storageRows){
-  const body = $("perfTbody");
-  if(!storageRows || !storageRows.length){
-    body.innerHTML = `<tr><td colspan="10" class="center muted" style="padding:28px;">Storage 데이터 없음 (설정 ⚙️ → STORAGE URL 확인)</td></tr>`;
-    $("perfRowCount").textContent = "0";
-    $("perfSample").textContent = "0";
-    $("perfAvg").textContent = "0.00%";
-    $("perfMed").textContent = "0.00%";
-    $("perfWin").textContent = "0.0%";
-    $("perfTop").textContent = "-";
-    $("perfWorst").textContent = "-";
+function renderPerfTable(){
+  const rows = storageRows;
+  $("perfRowCount").textContent = String(rows.length);
+
+  if(!rows.length){
+    renderPerfEmpty("Storage 데이터가 없어.");
     return;
   }
 
-  // ✅ DetectDate 기준 최신순
-  const rows = storageRows.slice().sort((a,b) => String(b.DetectDate).localeCompare(String(a.DetectDate)));
-
-  // ✅ 최근 N거래일만(DetectDate 고유값 기준)
-  const uniqDates = [];
-  const seen = new Set();
-  for(const r of rows){
-    const d = String(r.DetectDate||"").slice(0,10);
-    if(!d) continue;
-    if(!seen.has(d)){
-      seen.add(d);
-      uniqDates.push(d);
-    }
-    if(uniqDates.length >= perfDays) break;
-  }
-  const allowDates = new Set(uniqDates);
-  const filtered = rows.filter(r => allowDates.has(String(r.DetectDate||"").slice(0,10)));
-
-  $("perfRowCount").textContent = String(filtered.length);
-  $("perfSample").textContent = String(filtered.length);
-
-  // ✅ 평균/중앙/승률
-  const rets = filtered.map(perfPickReturn).filter(Number.isFinite);
-  const avg = rets.length ? rets.reduce((a,b)=>a+b,0)/rets.length : 0;
-  const med = rets.length ? (rets.slice().sort((a,b)=>a-b)[Math.floor(rets.length/2)]) : 0;
-  const win = rets.length ? (rets.filter(x=>x>0).length / rets.length) : 0;
-
-  $("perfAvg").textContent = (avg*100).toFixed(2) + "%";
-  $("perfMed").textContent = (med*100).toFixed(2) + "%";
-  $("perfWin").textContent = (win*100).toFixed(1) + "%";
-
-  // ✅ Top/Worst (rets 기준)
-  if(rets.length){
-    const topV = Math.max(...rets);
-    const worstV = Math.min(...rets);
-    const topRow = filtered.find(r => perfPickReturn(r) === topV);
-    const worstRow = filtered.find(r => perfPickReturn(r) === worstV);
-    $("perfTop").textContent = topRow ? `${topRow.Name || topRow.Code} ${(topV*100).toFixed(2)}%` : "-";
-    $("perfWorst").textContent = worstRow ? `${worstRow.Name || worstRow.Code} ${(worstV*100).toFixed(2)}%` : "-";
-  }else{
-    $("perfTop").textContent = "-";
-    $("perfWorst").textContent = "-";
-  }
-
-  // ✅ 테이블 렌더
-  body.innerHTML = filtered.map(r => `
-    <tr>
-      <td class="mono muted">${escapeHtml(String(r.DetectDate||"").slice(0,10))}</td>
-      <td class="mono muted">${escapeHtml(r.Code)}</td>
-      <td class="nameCell">${escapeHtml(r.Name||"")}</td>
-      <td class="mono">${escapeHtml(r.Signal_Type||"")}</td>
-      <td class="numRight mono">${fmt(Math.round(toNum(r.EntryPrice)))}</td>
-      <td class="numRight mono">${pctCell(Number(r.D1))}</td>
-      <td class="numRight mono">${pctCell(Number(r.D3))}</td>
-      <td class="numRight mono">${pctCell(Number(r.D5))}</td>
-      <td class="numRight mono">${pctCell(Number(r.D7))}</td>
-      <td class="numRight mono">${pctCell(Number(r.D9))}</td>
-    </tr>
-  `).join("");
-}
-function isFiniteNumber2(x){ return Number.isFinite(Number(x)); }
-function R(x){ return Number(x); }
-function pctCell(x){
-  if(!Number.isFinite(x)) return `<span class="muted">-</span>`;
-  const color = x >= 0 ? "#a7f3d0" : "#fecaca";
-  return `<span style="color:${color}; font-weight:950;">${(x*100).toFixed(2)}%</span>`;
-}
-function isFiniteNumber(x){ return Number.isFinite(x); }
-function Rn(v){ const x = Number(v); return Number.isFinite(x) ? x : NaN; }
-function perfPickReturn(row){
-  const order = ["D9","D7","D5","D3","D1"];
-  for(const k of order){
-    const v = Rn(row[k]);
-    if(Number.isFinite(v)) return v;
-  }
-  return NaN;
+  perfTbody.innerHTML = rows.map(r=>{
+    const score = r.Score;
+    return `
+      <tr>
+        <td class="mono muted">${escapeHtml(r.DetectDate || "-")}</td>
+        <td class="mono">${escapeHtml(r.Code)}</td>
+        <td class="nameCell">${escapeHtml(r.Name || "")}</td>
+        <td class="mono muted">${escapeHtml(r.Signal_Type || "")}</td>
+        <td class="numRight mono">${fmt(Math.round(toNum(r.Entry)))}</td>
+        <td class="numRight mono" style="color:${Number(r.D1)>=0? '#a7f3d0':'#fecaca'}">${pct(r.D1)}</td>
+        <td class="numRight mono" style="color:${Number(r.D3)>=0? '#a7f3d0':'#fecaca'}">${pct(r.D3)}</td>
+        <td class="numRight mono" style="color:${Number(r.D5)>=0? '#a7f3d0':'#fecaca'}">${pct(r.D5)}</td>
+        <td class="numRight mono" style="color:${Number(r.D7)>=0? '#a7f3d0':'#fecaca'}">${pct(r.D7)}</td>
+        <td class="numRight mono" style="color:${Number(r.D9)>=0? '#a7f3d0':'#fecaca'}">${pct(r.D9)}</td>
+        <td class="numRight mono" style="font-weight:950;">${Number.isFinite(score)? pct(score) : "-"}</td>
+      </tr>
+    `;
+  }).join("");
 }
 
-/** =========================
- *  데이터 로딩 (포착 + 성과)
- *  ========================= */
-async function fetchData(){
-  if(!sheetUrls.ALL){
-    openSettings(true);
-    showError("ALL 시트 URL을 먼저 입력해줘.");
-    return;
-  }
-
-  hideError();
-  setStatus("warn","로딩중...");
-  $("refreshBtn").disabled = true;
-  $("refreshIcon").innerHTML = '<span class="spin"></span>';
-
-  detailStock = null;
-  closeDetail();
-
-  try{
-    const [allText, trendText, pullText, breakText, storageText] = await Promise.all([
-      fetchText(sheetUrls.ALL),
-      sheetUrls.TREND ? fetchText(sheetUrls.TREND).catch(()=>null) : Promise.resolve(null),
-      sheetUrls.PULLBACK ? fetchText(sheetUrls.PULLBACK).catch(()=>null) : Promise.resolve(null),
-      sheetUrls.BREAKOUT ? fetchText(sheetUrls.BREAKOUT).catch(()=>null) : Promise.resolve(null),
-      sheetUrls.STORAGE ? fetchText(sheetUrls.STORAGE).catch(()=>null) : Promise.resolve(null),
-    ]);
-
-    // ---- 포착(ALL 기반)
-    const allData = parseAllSheet(allText);
-    if(!allData.length) throw new Error("ALL 시트 파싱 실패. 헤더/데이터 형식을 확인해줘.");
-
-    const trendSet = trendText ? parseSignalSheetToSet(trendText) : null;
-    const pullSet  = pullText  ? parseSignalSheetToSet(pullText)  : null;
-    const breakSet = breakText ? parseSignalSheetToSet(breakText) : null;
-
-    data = allData.map(s => {
-      if(trendSet) s.Trend_Signal = trendSet.has(s.Code) || s.Trend_Signal;
-      if(pullSet)  s.Pullback_Signal = pullSet.has(s.Code) || s.Pullback_Signal;
-      if(breakSet) s.Breakout_Signal = breakSet.has(s.Code) || s.Breakout_Signal;
-      return s;
-    });
-
-    data.sort((a,b) => {
-      if(b.Breakout_Signal !== a.Breakout_Signal) return b.Breakout_Signal ? 1 : -1;
-      if(b.Pullback_Signal !== a.Pullback_Signal) return b.Pullback_Signal ? 1 : -1;
-      if(b.Trend_Signal !== a.Trend_Signal) return b.Trend_Signal ? 1 : -1;
-      return toNum(b.Turnover) - toNum(a.Turnover);
-    });
-
-    // ✅ 여기서 유령 찜 제거
-    reconcileFavsWithData();
-
-    updateStats();
-    renderTable();
-
-    // ---- 성과(Storage)
-    if(storageText){
-      const storageRows = parseStorageSheet(storageText);
-      renderPerf(storageRows);
-    }else{
-      renderPerf([]);
-    }
-
-    lastUpdatedPill.textContent = "갱신: " + new Date().toLocaleTimeString("ko-KR");
-    setStatus("ok","최신 반영");
-    openSettings(false);
-
-  }catch(e){
-    data = [];
-    updateStats();
-    renderEmpty("데이터 로딩 실패: " + (e.message || String(e)));
-    renderPerf([]);
-    setStatus("err","실패");
-    showError(e.message || String(e));
-  }finally{
-    $("refreshBtn").disabled = false;
-    $("refreshIcon").textContent = "↻";
-  }
+function median(arr){
+  const a = arr.slice().sort((x,y)=>x-y);
+  if(!a.length) return NaN;
+  const m = Math.floor(a.length/2);
+  return (a.length%2) ? a[m] : (a[m-1]+a[m])/2;
 }
 
-/** =========================
- *  URL settings
- *  ========================= */
+function computePerfSummary(){
+  const rows = storageRows;
+  const scores = rows.map(r=>r.Score).filter(x=>Number.isFinite(x));
+  const n = scores.length;
+
+  $("perfN").textContent = "-"; // Storage만으론 “최근 N거래일”은 DetectDate 유니크 count로 보여줌
+  const uniqDates = new Set(rows.map(r=>r.DetectDate).filter(Boolean));
+  $("perfN").textContent = String(uniqDates.size);
+
+  $("perfSample").textContent = String(rows.length);
+
+  const avg = n ? scores.reduce((s,x)=>s+x,0)/n : NaN;
+  const med = n ? median(scores) : NaN;
+  const win = n ? (scores.filter(x=>x>0).length / n) : NaN;
+
+  $("perfAvg").textContent = Number.isFinite(avg) ? pct(avg) : "-";
+  $("perfMedian").textContent = Number.isFinite(med) ? pct(med) : "-";
+  $("perfWin").textContent = Number.isFinite(win) ? (win*100).toFixed(1)+"%" : "-";
+
+  // Best / Worst (Score 기준)
+  const best = rows.filter(r=>Number.isFinite(r.Score)).sort((a,b)=>b.Score-a.Score)[0];
+  const worst = rows.filter(r=>Number.isFinite(r.Score)).sort((a,b)=>a.Score-b.Score)[0];
+
+  $("perfBest").textContent = best ? `${best.Name || best.Code} ${pct(best.Score)}` : "-";
+  $("perfWorst").textContent = worst ? `${worst.Name || worst.Code} ${pct(worst.Score)}` : "-";
+
+  $("topName").textContent = best ? `${best.Name || best.Code} ${pct(best.Score)}` : "-";
+  $("worstName").textContent = worst ? `${worst.Name || worst.Code} ${pct(worst.Score)}` : "-";
+}
+
+/** ===== How Modal ===== */
+function buildHowText(){
+  // ✅ “맘대로 바뀐 설명” 원복 + D7 포함(5항 가중치) + 알럿 스타일
+  const wText = `Score = w1·Avg(D1) + w3·Avg(D3) + w5·Avg(D5) + w7·Avg(D7) + w9·Avg(D9)
+
+가중치(합=1.00)
+- w1(D1)=0.34
+- w3(D3)=0.26
+- w5(D5)=0.18
+- w7(D7)=0.12
+- w9(D9)=0.10
+
+규칙
+- Dn 값이 없는 표본은 제외하고, 남은 가중치를 “재정규화”해서 Score를 계산해.
+- 표본이 너무 적으면 패널티 적용:
+  · n < 5  → Score × 0.70
+  · n < 10 → Score × 0.85
+- 해석: “이 신호 조합이 최근 구간에서 얼마나 잘 먹히는지”를 한 줄로 요약한 점수야.`;
+
+  return wText;
+}
+
+function openHow(){
+  $("howBody").textContent = buildHowText();
+  $("howModal").classList.add("open");
+}
+function closeHow(){
+  $("howModal").classList.remove("open");
+}
+
+/** ===== Settings ===== */
 function loadUrls(){
   try{
     const raw = localStorage.getItem(LS_KEY);
@@ -1240,27 +1280,32 @@ function saveUrls(){
 }
 function openSettings(open){
   settingsPanel.classList.toggle("open", !!open);
+  settingsPanel.setAttribute("aria-hidden", open ? "false" : "true");
 }
 
-/** =========================
- *  Tabs
- *  ========================= */
-function openTab(name){
-  const isCatch = (name === "catch");
-  $("pageCatch").classList.toggle("active", isCatch);
-  $("pagePerf").classList.toggle("active", !isCatch);
-  $("tabCatch").classList.toggle("active", isCatch);
-  $("tabPerf").classList.toggle("active", !isCatch);
+/** ===== Tabs ===== */
+function setTab(which){
+  const isScreen = (which === "screen");
+  tabScreen.classList.toggle("active", isScreen);
+  tabPerf.classList.toggle("active", !isScreen);
+  screenSection.style.display = isScreen ? "" : "none";
+  perfSection.style.display = isScreen ? "none" : "";
+  closeDetail();
+  // 성과탭 들어갈 때 Storage 로드
+  if(!isScreen) fetchPerfData();
 }
 
-/** =========================
- *  Events bind
- *  ========================= */
+/** ===== Bind ===== */
 function bind(){
-  $("settingsBtn").addEventListener("click", () => openSettings(!settingsPanel.classList.contains("open")));
+  $("settingsBtn").addEventListener("click", () => openSettings(true));
   $("settingsCloseBtn").addEventListener("click", () => openSettings(false));
 
-  $("refreshBtn").addEventListener("click", fetchData);
+  $("refreshBtn").addEventListener("click", async () => {
+    await fetchScreenData();
+    // 성과탭이 열려있으면 성과도 새로
+    if(perfSection.style.display !== "none") fetchPerfData();
+  });
+
   $("saveAndRefreshBtn").addEventListener("click", () => {
     sheetUrls = {
       ALL: $("urlALL").value.trim(),
@@ -1270,38 +1315,25 @@ function bind(){
       STORAGE: $("urlSTORAGE").value.trim(),
     };
     saveUrls();
-    savePerfDays();
-    fetchData();
+    fetchScreenData();
+    if(perfSection.style.display !== "none") fetchPerfData();
+    openSettings(false);
   });
 
-  // ✅ 기간 조절
-  $("daysMinusBtn").addEventListener("click", () => {
-    perfDays = Math.max(5, perfDays - 5);
-    savePerfDays();
-    fetchData();
-  });
-  $("daysPlusBtn").addEventListener("click", () => {
-    perfDays = Math.min(60, perfDays + 5);
-    savePerfDays();
-    fetchData();
-  });
+  // Tabs
+  tabScreen.addEventListener("click", () => setTab("screen"));
+  tabPerf.addEventListener("click", () => setTab("perf"));
 
-  // ✅ 탭 전환
-  $("tabCatch").addEventListener("click", () => openTab("catch"));
-  $("tabPerf").addEventListener("click", () => openTab("perf"));
-
-  // ✅ 필터 카드
+  // Filter cards
   document.querySelectorAll(".card[data-filter]").forEach(el => {
     el.addEventListener("click", () => {
-      document.querySelectorAll(".card[data-filter]").forEach(c => c.classList.remove("active"));
-      el.classList.add("active");
       filterType = el.dataset.filter;
       closeDetail();
-      renderTable();
+      renderScreenTable();
     });
   });
 
-  // ✅ 테이블 클릭
+  // Screen table interactions
   tbody.addEventListener("click", (e) => {
     const t = e.target;
 
@@ -1316,43 +1348,31 @@ function bind(){
     if(!tr) return;
 
     toggleDetailByCode(tr.dataset.code);
-    renderTable();
   });
 
-  $("detailCloseBtn").addEventListener("click", () => {
-    closeDetail();
-    renderTable();
+  $("detailCloseBtn").addEventListener("click", () => closeDetail());
+
+  // How modal
+  $("howCard").addEventListener("click", openHow);
+  $("scoreCard").addEventListener("click", openHow);
+  $("howCloseBtn").addEventListener("click", closeHow);
+  $("howCloseTop").addEventListener("click", closeHow);
+  $("howModal").addEventListener("click", (e) => {
+    if(e.target === $("howModal")) closeHow();
   });
 
-  // ✅ How 카드
-  $("howCard").addEventListener("click", () => {
-    alert(
-`[How: 점수/성과 해석]
-- 성과는 Storage의 D1/D3/D5/D7/D9 수익률을 기반으로 요약해.
-- 최근 N거래일은 DetectDate(YYYY-MM-DD)의 '고유 날짜' 기준으로 집계.
-- Top/Worst는 D9→D7→D5→D3→D1 순으로 "가장 먼 수익률"이 있으면 그걸 대표 수익률로 사용.
-- 찜(⭐)은 현재 로딩된 종목코드에 존재하는 것만 유효(유령 찜 자동 제거).`
-    );
-  });
-
-  window.addEventListener("resize", () => renderTable());
-
-  // ✅ settings 초기값
+  // Init inputs
   $("urlALL").value = sheetUrls.ALL;
   $("urlTREND").value = sheetUrls.TREND;
   $("urlPULLBACK").value = sheetUrls.PULLBACK;
   $("urlBREAKOUT").value = sheetUrls.BREAKOUT;
   $("urlSTORAGE").value = sheetUrls.STORAGE;
 
-  // ✅ perf days 표시
-  savePerfDays();
-
-  // ✅ 찜 숫자만 먼저 반영(데이터 로딩 후 reconcile로 정리됨)
-  $("statFav").textContent = String(selectedCodes.size);
+  saveFavs();
 }
 
 bind();
-fetchData();
+fetchScreenData();
 </script>
 </body>
 </html>
