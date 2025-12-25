@@ -2,1377 +2,1194 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <script>
-    if (!sessionStorage.getItem("auth")) {
-      const input = prompt("비밀번호를 입력하세요");
-      if (input !== "fire") {
-        document.body.innerHTML = "<h2 style='padding:20px'>접근 불가</h2>";
-        throw new Error("Unauthorized");
-      }
-      sessionStorage.setItem("auth", "true");
-    }
-  </script>
-
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-  <title>YJ 스크리너 (Single-file)</title>
+  <title>퀀트 스크리너 (Single-file)</title>
 
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#0b1220">
 
   <style>
     :root{
-      --bg:#0f172a; --panel:#111c33; --panel2:#0b1224;
-      --line:#223053; --txt:#e5e7eb; --muted:#94a3b8;
-      --green:#22c55e; --yellow:#eab308; --red:#ef4444; --blue:#60a5fa;
-      --radius:14px; --tap: 44px;
+      --bg:#0b1220;
+      --panel:#0f1a2e;
+      --panel2:#0c1628;
+      --line:rgba(148,163,184,.18);
+      --txt:#e5e7eb;
+      --muted:#94a3b8;
+      --good:#34d399;
+      --bad:#fb7185;
+      --warn:#fbbf24;
+      --accent:#60a5fa;
+      --radius:16px;
     }
-    *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { height:100%; }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
     body{
       margin:0;
-      background:var(--bg);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", Apple SD Gothic Neo, "Malgun Gothic", sans-serif;
+      background: radial-gradient(1200px 600px at 20% -10%, rgba(96,165,250,.25), transparent 60%),
+                  radial-gradient(900px 500px at 80% 10%, rgba(52,211,153,.18), transparent 55%),
+                  var(--bg);
       color:var(--txt);
-      font-family: ui-sans-serif, system-ui, -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-      overflow: hidden; /* ✅ 앱처럼: 전체는 main이 스크롤 담당 */
-      overscroll-behavior: none;
+      overflow:hidden; /* iOS 이중 스크롤 꼬임 방지: main만 스크롤 */
     }
 
-    /* ===== App Layout ===== */
-    .app{
-      height: 100dvh;
-      display:flex;
-      flex-direction: column;
-      min-height:0;
+    /* layout */
+    .app{ height:100%; display:flex; flex-direction:column; }
+    .topbar{
+      padding: 14px 14px 10px 14px;
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
     }
-    header{
-      padding-top: env(safe-area-inset-top);
-      background:var(--panel);
-      border-bottom:1px solid var(--line);
-      position: sticky;
-      top:0;
-      z-index:70;
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      min-width:0;
     }
-    .headInner{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      padding:10px 14px;
-    }
-    .brand{ display:flex; align-items:center; gap:10px; min-width:0; }
     .logo{
-      width:28px; height:28px; border-radius:10px;
-      background:linear-gradient(135deg, #60a5fa, #22c55e);
-      box-shadow:0 10px 30px rgba(59,130,246,.15);
+      width:34px; height:34px; border-radius:12px;
+      background: linear-gradient(135deg, rgba(96,165,250,.9), rgba(52,211,153,.85));
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
       flex:0 0 auto;
     }
-    h1{ margin:0; font-size:18px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .sub{ color:var(--muted); font-size:12px; margin-left:6px; font-weight:500;}
+    .titleWrap{ min-width:0; }
+    .title{
+      font-weight:900;
+      letter-spacing:.2px;
+      font-size:18px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:44vw;
+    }
+    .subtitle{
+      margin-top:2px;
+      color:var(--muted);
+      font-size:12px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:44vw;
+    }
 
-    .toolbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
-    .iconbtn{
-      width:var(--tap); height:var(--tap); border-radius:12px;
-      border:1px solid var(--line); background:transparent; color:var(--muted);
-      display:grid; place-items:center; cursor:pointer; font-size:16px;
+    .actions{
+      display:flex; align-items:center; gap:10px;
+      flex:0 0 auto;
     }
     .btn{
-      min-height:var(--tap);
-      border:1px solid var(--line); background:transparent; color:var(--txt);
-      padding:9px 12px; border-radius:12px; cursor:pointer; font-weight:900; font-size:13px;
-      display:flex; align-items:center; gap:8px;
-    }
-    .btn.primary{ background:rgba(59,130,246,.18); border-color:rgba(59,130,246,.45); }
-    .btn:disabled{ opacity:.55; cursor:not-allowed; }
-    .pill{
-      border:1px solid var(--line); background:rgba(255,255,255,.03);
-      padding:7px 10px; border-radius:999px; font-size:12px; color:var(--muted); white-space:nowrap;
-    }
-    .pill.ok{ border-color: rgba(34,197,94,.4); color:#a7f3d0; background:rgba(34,197,94,.10);}
-    .pill.err{ border-color: rgba(239,68,68,.45); color:#fecaca; background:rgba(239,68,68,.10);}
-    .pill.warn{ border-color: rgba(234,179,8,.45); color:#fde68a; background:rgba(234,179,8,.10);}
-
-    /* ✅ main이 스크롤 담당 (iOS 안정화 핵심) */
-    main{
-      flex:1;
-      min-height:0;
-      overflow:auto;
-      -webkit-overflow-scrolling: touch;
-      padding:14px;
-      padding-bottom: calc(14px + env(safe-area-inset-bottom));
-      overscroll-behavior: contain;
-      touch-action: pan-y;
-    }
-
-    /* ===== Settings Panel (overlay) ===== */
-    .settings{
-      display:none;
-      position: fixed;
-      top:0; left:0; right:0; bottom:0;
-      z-index:90;
-      background: rgba(0,0,0,.55);
-      padding: calc(70px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom)) 14px;
-    }
-    .settings.open{ display:block; }
-    .settingsCard{
-      max-width:1100px; margin:0 auto;
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:16px;
-      box-shadow:0 24px 80px rgba(0,0,0,.45);
-      overflow:hidden;
-    }
-    .settingsHead{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      padding:12px 14px;
-      border-bottom:1px solid var(--line);
-      background: rgba(255,255,255,.02);
-      font-weight:950;
-    }
-    .settingsBody{
-      padding:14px;
-      display:flex; flex-direction:column; gap:10px;
-    }
-    .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    label{ font-size:12px; color:var(--muted); }
-    input[type="text"]{
-      width:100%; padding:10px 12px; border-radius:12px;
-      border:1px solid var(--line); background:var(--panel2); color:var(--txt); outline:none;
-    }
-    .grid2{ display:grid; grid-template-columns: 110px 1fr; gap:10px; align-items:center; }
-    @media (max-width: 520px){ .grid2{ grid-template-columns:1fr; } }
-    .errorbox{
-      display:flex; gap:10px; align-items:flex-start;
-      border:1px solid rgba(239,68,68,.35); background:rgba(239,68,68,.12);
-      padding:12px; border-radius:12px; color:#fecaca; font-size:12px;
-    }
-
-    /* ===== Tabs ===== */
-    .tabs{
-      display:flex; gap:10px;
-      margin-bottom:12px;
-    }
-    .tabbtn{
       border:1px solid var(--line);
       background: rgba(255,255,255,.03);
-      color: var(--txt);
+      color:var(--txt);
       padding:10px 12px;
-      border-radius:12px;
-      font-weight:950;
+      border-radius:14px;
+      font-weight:800;
       cursor:pointer;
-      display:flex; align-items:center; gap:8px;
+      user-select:none;
     }
-    .tabbtn.active{
-      background: rgba(59,130,246,.18);
-      border-color: rgba(59,130,246,.45);
+    .btn.primary{
+      background: rgba(96,165,250,.22);
+      border-color: rgba(96,165,250,.35);
+    }
+    .btn.good{
+      background: rgba(52,211,153,.18);
+      border-color: rgba(52,211,153,.30);
+    }
+    .btn:active{ transform: translateY(1px); }
+
+    /* main scroll area */
+    .main{
+      flex:1 1 auto;
+      overflow:auto;
+      -webkit-overflow-scrolling:touch;
+      padding: 0 14px 18px 14px;
     }
 
-    /* ===== Cards / Panels ===== */
-    .stats{
+    /* tabs */
+    .tabbar{
+      display:flex;
+      gap:10px;
+      margin: 6px 0 12px 0;
+    }
+    .tab{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      padding:10px 14px;
+      border-radius:999px;
+      font-weight:900;
+      cursor:pointer;
+      display:flex; align-items:center; gap:8px;
+      color:var(--muted);
+      user-select:none;
+    }
+    .tab.active{
+      color:var(--txt);
+      background: rgba(148,163,184,.10);
+      outline:1px solid rgba(148,163,184,.35);
+    }
+
+    /* grid cards */
+    .grid{
       display:grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
       gap:12px;
-      margin-bottom:14px;
     }
-    @media (max-width: 980px){ .stats{ grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-    @media (max-width: 640px){ .stats{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width:1100px){
+      .grid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width:640px){
+      .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
 
     .card{
+      border:1px solid var(--line);
+      background: var(--panel);
+      border-radius: var(--radius);
+      padding: 12px;
+      min-height: 84px;
+      box-shadow: 0 18px 40px rgba(0,0,0,.22);
+      position:relative;
+      overflow:hidden;
+    }
+    .card .k{
+      font-size:12px;
+      color:var(--muted);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      white-space:nowrap;
+    }
+    .card .v{
+      margin-top:8px;
+      font-size:30px;
+      font-weight:950;
+      letter-spacing:-.3px;
+    }
+    .badgeIcon{
+      width:30px; height:30px;
+      border-radius:12px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border:1px solid rgba(148,163,184,.22);
+      color:rgba(226,232,240,.9);
+      background: rgba(255,255,255,.03);
+      flex:0 0 auto;
+    }
+
+    /* table panel */
+    .panel{
+      margin-top:12px;
+      border:1px solid var(--line);
+      background: var(--panel2);
+      border-radius: var(--radius);
+      overflow:hidden;
+      box-shadow: 0 18px 40px rgba(0,0,0,.22);
+    }
+    .panelHead{
+      padding: 12px 12px;
+      border-bottom:1px solid rgba(148,163,184,.10);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .panelHead h2{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.2px;
+      font-weight:950;
+    }
+    .count{
+      color:var(--muted);
+      font-weight:900;
+      font-size:12px;
+      padding:6px 10px;
+      border:1px solid rgba(148,163,184,.18);
+      border-radius:999px;
+      background: rgba(255,255,255,.03);
+      white-space:nowrap;
+    }
+
+    .tableScroll{
+      max-height: 52vh;
+      overflow:auto;
+      -webkit-overflow-scrolling:touch;
+    }
+    @media (max-width:640px){
+      .tableScroll{ max-height: 48vh; }
+    }
+
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      font-size:13px;
+      min-width: 820px; /* 모바일에서 가로 스크롤 가능 */
+    }
+    thead th{
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: rgba(11,18,32,.92);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid rgba(148,163,184,.12);
+      color: var(--muted);
+      text-align:left;
+      padding: 10px 10px;
+      font-weight:950;
+      letter-spacing:.2px;
+      white-space:nowrap;
+    }
+    tbody td{
+      border-bottom:1px solid rgba(148,163,184,.08);
+      padding: 10px 10px;
+      color: rgba(226,232,240,.92);
+      vertical-align:middle;
+      white-space:nowrap;
+    }
+    tbody tr:hover td{
+      background: rgba(255,255,255,.03);
+    }
+    .numRight{ text-align:right; }
+    .center{ text-align:center; }
+    .muted{ color: var(--muted); }
+    .mono{ font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+    .good{ color: var(--good); font-weight:900; }
+    .bad{ color: var(--bad); font-weight:900; }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.18);
+      background: rgba(255,255,255,.03);
+      font-weight:900;
+      font-size:12px;
+      color: var(--muted);
+      cursor:pointer;
+      user-select:none;
+    }
+    .pill.on{
+      color: var(--txt);
+      border-color: rgba(96,165,250,.35);
+      background: rgba(96,165,250,.12);
+    }
+
+    /* PERF (성과탭 상단 이전버전 스타일) */
+    .perfTop{ display:flex; flex-direction:column; gap:12px; }
+
+    .perfChips{ display:flex; flex-wrap:wrap; gap:8px; }
+    .chip{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:12px;
+      color:var(--muted);
+      white-space:nowrap;
+      font-weight:900;
+    }
+
+    .perfCards{
+      display:grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap:12px;
+    }
+    @media (max-width:980px){
+      .perfCards{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width:640px){
+      .perfCards{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    .pCard{
       border:1px solid var(--line);
       background:var(--panel);
       border-radius:var(--radius);
       padding:12px;
-      min-height:80px;
-      box-shadow:0 12px 40px rgba(0,0,0,.20);
+      cursor:pointer;
+      text-align:left;
+      color:var(--txt);
+      min-height:92px;
+      box-shadow: 0 18px 40px rgba(0,0,0,.22);
+      user-select:none;
+      overflow:hidden;
     }
-    .card.clickable{ cursor:pointer; }
-    .card:active{ transform: translateY(1px); }
-    .card .t{
+    .pCard:active{ transform: translateY(1px); }
+    .pCard.active{
+      outline:1px solid rgba(148,163,184,.5);
+      background: rgba(148,163,184,.08);
+    }
+    .pCard .t{
       color:var(--muted); font-size:12px;
       display:flex; align-items:center; justify-content:space-between; gap:8px;
-    }
-    .badgeIcon{
-      width:30px; height:30px; border-radius:12px; display:grid; place-items:center;
-      border:1px solid var(--line); background:rgba(255,255,255,.03); color:var(--muted);
-    }
-    .card .n{ font-size:22px; font-weight:950; margin-top:6px; }
-
-    .panel{
-      border:1px solid var(--line);
-      background:var(--panel);
-      border-radius:var(--radius);
-      overflow:hidden;
-      display:flex;
-      flex-direction:column;
-      min-height:0;
-      box-shadow:0 12px 40px rgba(0,0,0,.20);
-    }
-    .panelHead{
-      padding:12px 14px;
-      border-bottom:1px solid var(--line);
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      background: rgba(255,255,255,.02);
-    }
-    .panelHead h2{ margin:0; font-size:14px; }
-    .panelHead .count{
-      font-size:12px; color:var(--muted);
-      padding:3px 10px; border-radius:999px; border:1px solid var(--line); white-space:nowrap;
-    }
-
-    /* ✅ iOS에서 테이블 스크롤 확실히 */
-    .tableScroll{
-      overflow:auto;
-      -webkit-overflow-scrolling: touch;
-      touch-action: pan-x pan-y;
-      max-height: 62vh;  /* ✅ 아이폰에서 리스트가 “영역 내 스크롤” 되도록 */
-    }
-    @media (max-width: 640px){
-      .tableScroll{ max-height: 56vh; }
-    }
-
-    table{ width:100%; border-collapse:collapse; font-size:13px; min-width: 720px; } /* ✅ 가로 부족하면 가로스크롤 */
-    thead th{
-      position:sticky; top:0; z-index:2;
-      background: rgba(15,23,42,.92);
-      backdrop-filter: blur(6px);
-      color: var(--muted);
-      font-size:11px;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-      border-bottom:1px solid var(--line);
-      padding:10px 10px;
-      white-space: nowrap;
-    }
-    tbody td{
-      border-bottom:1px solid rgba(34,48,83,.55);
-      padding:12px 10px;
-      vertical-align:middle;
-      white-space: nowrap;
-    }
-    tbody tr:hover{ background: rgba(148,163,184,.07); }
-    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-    .muted{ color:var(--muted); }
-    .numRight{ text-align:right; }
-    .center{ text-align:center; }
-    td.nameCell{
-      max-width: 44vw;
-      overflow:hidden;
-      text-overflow: ellipsis;
-    }
-
-    .sigWrap{ display:flex; gap:6px; justify-content:center; flex-wrap:wrap; }
-    .sig{ font-size:10px; padding:2px 8px; border-radius:999px; border:1px solid; font-weight:900; line-height:1.4; }
-    .sig.red{ color:#fecaca; background:rgba(239,68,68,.15); border-color:rgba(239,68,68,.30); }
-    .sig.yellow{ color:#fde68a; background:rgba(234,179,8,.15); border-color:rgba(234,179,8,.30); }
-    .sig.green{ color:#bbf7d0; background:rgba(34,197,94,.15); border-color:rgba(34,197,94,.30); }
-
-    .selectDot{
-      width:18px; height:18px;
-      border-radius:999px; border:2px solid var(--yellow);
-      display:inline-block; background:transparent; vertical-align:middle;
-    }
-    .selectDot.on{ background: var(--yellow); border-color: var(--yellow); }
-    .selectHit{
-      display:inline-flex; align-items:center; justify-content:center;
-      width:var(--tap); height:var(--tap); border-radius:12px;
-    }
-
-    /* ===== Perf small pills ===== */
-    .pillsRow{
-      display:flex; flex-wrap:wrap; gap:10px;
-      margin-bottom:14px;
-    }
-    .pillBig{
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.03);
-      padding:10px 12px;
-      border-radius:999px;
-      font-weight:900;
-      display:flex;
-      gap:8px;
-      align-items:center;
-      color: var(--txt);
       white-space:nowrap;
     }
-    .pillBig .k{ color: var(--muted); font-weight:800; }
-    .pillBig .v{ font-variant-numeric: tabular-nums; }
+    .pCard .n{ font-size:22px; font-weight:950; margin-top:6px; }
+    .pCard .sub{ color:var(--muted); font-size:12px; margin-top:4px; white-space:nowrap; }
+    .pCard .n, .pCard .sub{ word-break:keep-all; }
 
-    /* ===== Alert Modal ===== */
-    .modal{
-      display:none;
-      position:fixed;
-      inset:0;
-      z-index:120;
+    /* modal */
+    .backdrop{
+      position:fixed; inset:0;
       background: rgba(0,0,0,.55);
-      padding: calc(16px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom)) 14px;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index:50;
     }
-    .modal.open{ display:block; }
-    .modalCard{
-      max-width:720px;
-      margin: 10vh auto 0 auto;
-      background: #f8fafc;
-      color:#0f172a;
-      border-radius:16px;
-      box-shadow:0 24px 80px rgba(0,0,0,.45);
+    .backdrop.show{ display:flex; }
+    .modal{
+      width:min(980px, 100%);
+      border:1px solid rgba(148,163,184,.20);
+      border-radius:18px;
+      background: rgba(15,26,46,.96);
+      box-shadow: 0 30px 80px rgba(0,0,0,.45);
       overflow:hidden;
     }
     .modalHead{
       padding:12px 14px;
-      font-weight:950;
-      border-bottom:1px solid rgba(15,23,42,.12);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
+      display:flex; justify-content:space-between; align-items:center;
+      border-bottom:1px solid rgba(148,163,184,.10);
+    }
+    .modalHead h3{ margin:0; font-size:14px; font-weight:950; }
+    .modalBody{ padding: 14px; }
+    .row{
+      display:grid;
+      grid-template-columns: 120px 1fr;
       gap:10px;
+      align-items:center;
+      margin-bottom:10px;
     }
-    .modalBody{
-      padding:14px;
-      line-height:1.55;
-      font-size:14px;
-      white-space:pre-wrap;
+    @media (max-width:640px){
+      .row{ grid-template-columns: 1fr; }
     }
+    label{ color:var(--muted); font-size:12px; font-weight:900; }
+    input{
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(148,163,184,.22);
+      background: rgba(255,255,255,.03);
+      color: var(--txt);
+      outline:none;
+    }
+    input:focus{ border-color: rgba(96,165,250,.45); }
     .modalFoot{
       padding:12px 14px;
-      border-top:1px solid rgba(15,23,42,.12);
+      border-top:1px solid rgba(148,163,184,.10);
       display:flex;
       justify-content:flex-end;
+      gap:10px;
     }
-    .modalBtn{
-      border:1px solid rgba(15,23,42,.20);
-      background: transparent;
-      padding:10px 14px;
-      border-radius:12px;
-      font-weight:950;
-      cursor:pointer;
-    }
-
-    /* ===== Right detail (Screen tab only) ===== */
-    .screenWrap{
-      display:flex;
-      gap:14px;
-      align-items:stretch;
-      min-height:0;
-    }
-    .leftPane{ flex:1; min-width:0; display:flex; flex-direction:column; gap:14px; }
-    .rightPane{
-      width:380px;
-      border:1px solid var(--line);
-      background:var(--panel);
-      border-radius:var(--radius);
-      overflow:hidden;
-      display:none;
-      flex-direction:column;
-      min-height:0;
-      box-shadow:0 12px 40px rgba(0,0,0,.20);
-    }
-    .rightPane.open{ display:flex; }
-    @media (max-width:1024px){
-      .screenWrap{ flex-direction:column; }
-      .rightPane{ width:auto; }
-    }
-
-    .detailTop{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; border-bottom:1px solid var(--line); }
-    .live{
-      font-size:11px; padding:6px 10px; border-radius:999px;
-      border:1px solid rgba(34,197,94,.35);
-      background:rgba(34,197,94,.12);
-      color:#a7f3d0; font-weight:950;
-      white-space:nowrap;
-    }
-    .closeBtn{
-      width:var(--tap); height:var(--tap);
-      border:1px solid var(--line); background:transparent; color:var(--muted);
-      border-radius:12px; cursor:pointer; display:grid; place-items:center; font-size:16px;
-    }
-    .detailBody{ padding:14px; overflow:auto; -webkit-overflow-scrolling:touch; }
-    .detailH{ margin:6px 0 10px; font-size:22px; font-weight:950; }
-    .boxGrid{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
-    .box{ border:1px solid rgba(34,48,83,.7); background: rgba(15,23,42,.45); padding:10px; border-radius:12px; }
-    .box .l{ font-size:11px; color:var(--muted); margin-bottom:6px; }
-    .box .v{ font-size:14px; font-weight:950; }
-    .analysis{ margin-top:12px; border:1px solid rgba(34,48,83,.75); background: rgba(15,23,42,.45); padding:12px; border-radius:12px; }
-    .analysis h3{ margin:0 0 8px; font-size:13px; display:flex; align-items:center; gap:8px; }
-    .analysis ul{ margin:0; padding-left:18px; color:#cbd5e1; font-size:13px; }
-    .analysis li{ margin:6px 0; }
-    .foot{ margin-top:12px; border-top:1px solid rgba(34,48,83,.65); padding-top:10px; color:var(--muted); font-size:12px; }
-
-    .spin{
-      display:inline-block; width:14px; height:14px; border-radius:50%;
-      border:2px solid rgba(148,163,184,.35); border-top-color: rgba(148,163,184,1);
-      animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin{ to { transform: rotate(360deg);} }
   </style>
 </head>
 
 <body>
 <div class="app">
 
-  <header>
-    <div class="headInner">
-      <div class="brand">
-        <div class="logo"></div>
-        <div style="min-width:0;">
-          <h1>퀀트 스크리너 <span class="sub">Single-file</span></h1>
-        </div>
-      </div>
-
-      <div class="toolbar">
-        <button class="iconbtn" id="settingsBtn" title="URL 설정">⚙️</button>
-        <span class="pill" id="lastUpdatedPill">갱신: -</span>
-        <span class="pill warn" id="statusPill">대기</span>
-        <button class="btn primary" id="refreshBtn"><span id="refreshIcon">↻</span> 데이터 갱신</button>
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo"></div>
+      <div class="titleWrap">
+        <div class="title">퀀트 스크리너</div>
+        <div class="subtitle mono" id="statusLine">갱신: -</div>
       </div>
     </div>
-  </header>
 
-  <!-- Settings Overlay -->
-  <div class="settings" id="settingsPanel" aria-hidden="true">
-    <div class="settingsCard">
-      <div class="settingsHead">
-        <div>Google Sheet CSV URL 설정</div>
-        <button class="iconbtn" id="settingsCloseBtn" title="닫기">✕</button>
-      </div>
-
-      <div class="settingsBody">
-        <div class="grid2">
-          <label><b style="color:#93c5fd;">ALL</b></label>
-          <input id="urlALL" type="text">
-          <label><b style="color:#bbf7d0;">TREND</b></label>
-          <input id="urlTREND" type="text">
-          <label><b style="color:#fde68a;">PULLBACK</b></label>
-          <input id="urlPULLBACK" type="text">
-          <label><b style="color:#fecaca;">BREAKOUT</b></label>
-          <input id="urlBREAKOUT" type="text">
-
-          <label><b style="color:#a7f3d0;">STORAGE</b></label>
-          <input id="urlSTORAGE" type="text">
-        </div>
-
-        <div class="row" style="justify-content:flex-end;">
-          <button class="btn primary" id="saveAndRefreshBtn">URL 저장 및 새로고침</button>
-        </div>
-
-        <div class="errorbox" id="errorBox" style="display:none;">
-          <div style="font-weight:950;">오류</div>
-          <div>
-            <div id="errorMsg" style="word-break:break-all;"></div>
-            <div class="muted" style="margin-top:6px;">
-              * 시트가 “웹에 게시”되어 있고 URL이 <span class="mono">output=csv</span>로 끝나는지 확인
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="actions">
+      <button class="btn" id="btnSettings">⚙️</button>
+      <button class="btn good" id="btnLatest">최신 반영</button>
+      <button class="btn primary" id="btnRefresh">데이터 갱신</button>
     </div>
   </div>
 
-  <!-- How Modal -->
-  <div class="modal" id="howModal" aria-hidden="true">
-    <div class="modalCard">
-      <div class="modalHead">
-        <div>[How: Score 산식]</div>
-        <button class="modalBtn" id="howCloseTop">닫기</button>
-      </div>
-      <div class="modalBody" id="howBody"></div>
-      <div class="modalFoot">
-        <button class="modalBtn" id="howCloseBtn">닫기</button>
-      </div>
-    </div>
-  </div>
-
-  <main>
-    <div class="tabs">
-      <button class="tabbtn active" id="tabScreen">🔎 포착</button>
-      <button class="tabbtn" id="tabPerf">📊 성과</button>
+  <div class="main">
+    <div class="tabbar">
+      <div class="tab active" id="tabScreen">🔎 포착</div>
+      <div class="tab" id="tabPerf">📊 성과</div>
     </div>
 
-    <!-- ========== SCREEN TAB ========== -->
-    <section id="screenSection">
-      <div class="stats">
-        <div class="card clickable" data-filter="ALL">
-          <div class="t"><span>전체 포착</span><span class="badgeIcon">🔎</span></div>
-          <div class="n" id="statTotal">-</div>
+    <!-- =======================
+         SCREEN TAB
+    ======================== -->
+    <section id="screenView">
+      <div class="grid" style="margin-bottom:12px;">
+        <div class="card">
+          <div class="k"><span>전체 포착</span><span class="badgeIcon">🔎</span></div>
+          <div class="v mono" id="statAll">-</div>
         </div>
-
-        <div class="card clickable" data-filter="TREND">
-          <div class="t"><span>추세 추종</span><span class="badgeIcon" style="border-color:rgba(34,197,94,.35); color:#bbf7d0;">📈</span></div>
-          <div class="n" id="statTrend">-</div>
+        <div class="card">
+          <div class="k"><span>추세 추종</span><span class="badgeIcon" style="border-color:rgba(52,211,153,.28);color:#bbf7d0;">📈</span></div>
+          <div class="v mono" id="statTrend">-</div>
         </div>
-
-        <div class="card clickable" data-filter="PULLBACK">
-          <div class="t"><span>눌림목</span><span class="badgeIcon" style="border-color:rgba(234,179,8,.35); color:#fde68a;">🟡</span></div>
-          <div class="n" id="statPullback">-</div>
+        <div class="card">
+          <div class="k"><span>눌림목</span><span class="badgeIcon" style="border-color:rgba(251,191,36,.28);color:#fde68a;">🟡</span></div>
+          <div class="v mono" id="statPullback">-</div>
         </div>
-
-        <div class="card clickable" data-filter="BREAKOUT">
-          <div class="t"><span>박스권 돌파</span><span class="badgeIcon" style="border-color:rgba(239,68,68,.35); color:#fecaca;">🚀</span></div>
-          <div class="n" id="statBreakout">-</div>
+        <div class="card">
+          <div class="k"><span>박스권 돌파</span><span class="badgeIcon" style="border-color:rgba(96,165,250,.28);color:#bfdbfe;">🚀</span></div>
+          <div class="v mono" id="statBreakout">-</div>
         </div>
-
-        <div class="card clickable" data-filter="FAV">
-          <div class="t"><span>찜 목록</span><span class="badgeIcon" style="border-color:rgba(234,179,8,.35); color:#fde68a;">⭐</span></div>
-          <div class="n" id="statFav">0</div>
+        <div class="card">
+          <div class="k"><span>찜 목록</span><span class="badgeIcon" style="border-color:rgba(234,179,8,.28);color:#fde68a;">⭐</span></div>
+          <div class="v mono" id="statFav">0</div>
         </div>
       </div>
 
-      <div class="screenWrap">
-        <div class="leftPane">
-          <div class="panel">
-            <div class="panelHead">
-              <h2>검출 종목 리스트 (<span id="filterLabel">ALL</span>)</h2>
-              <div class="count"><span id="rowCount">0</span>건</div>
-            </div>
-
-            <!-- ✅ 세로 스크롤은 여기서 -->
-            <div class="tableScroll" id="screenTableScroll">
-              <table>
-                <thead>
-                  <tr>
-                    <th>CODE</th>
-                    <th>NAME</th>
-                    <th class="center">FAV</th>
-                    <th class="numRight">CLOSE</th>
-                    <th class="numRight">TURNOVER</th>
-                    <th class="center">RSI</th>
-                    <th class="center">STOCH K</th>
-                    <th class="center">SIGNAL</th>
-                  </tr>
-                </thead>
-                <tbody id="tbody">
-                  <tr><td colspan="8" class="center muted" style="padding:28px;">데이터 로딩 중...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <aside class="rightPane" id="rightPane">
-          <div class="detailTop">
-            <div>
-              <div class="muted" id="detailMeta">-</div>
-              <div class="detailH" id="detailName">-</div>
-            </div>
-            <div style="display:flex; gap:8px; align-items:center;">
-              <span class="live">Live Data</span>
-              <button class="closeBtn" id="detailCloseBtn" title="닫기">✕</button>
-            </div>
-          </div>
-
-          <div class="detailBody">
-            <div class="boxGrid">
-              <div class="box">
-                <div class="l">현재가</div>
-                <div class="v"><span id="detailClose">-</span> <span class="muted" style="font-size:12px;">원</span></div>
-              </div>
-              <div class="box">
-                <div class="l">RSI (14)</div>
-                <div class="v" id="detailRSI">-</div>
-              </div>
-              <div class="box">
-                <div class="l">Stoch K</div>
-                <div class="v" id="detailStoch">-</div>
-              </div>
-              <div class="box">
-                <div class="l">거래량</div>
-                <div class="v" id="detailVol">-</div>
-              </div>
-            </div>
-
-            <div class="analysis">
-              <h3>⚠️ 포착 신호 분석</h3>
-              <ul id="detailSignals"></ul>
-              <div class="foot" id="detailFoot">-</div>
-            </div>
-
-            <div class="analysis" style="margin-top:12px;">
-              <h3>📈 실시간 차트</h3>
-              <iframe
-                id="tvFrame"
-                style="width:100%; height:240px; border:0; border-radius:10px;"
-                loading="lazy"
-                allowfullscreen
-              ></iframe>
-            </div>
-          </div>
-        </aside>
-      </div>
-    </section>
-
-    <!-- ========== PERF TAB ========== -->
-    <section id="perfSection" style="display:none;">
-      <div class="pillsRow">
-        <div class="pillBig"><span class="k">최근</span><span class="v" id="perfN">-</span><span class="k">거래일</span></div>
-        <div class="pillBig"><span class="k">표본</span><span class="v" id="perfSample">-</span></div>
-        <div class="pillBig"><span class="k">평균</span><span class="v" id="perfAvg">-</span></div>
-        <div class="pillBig"><span class="k">중앙값</span><span class="v" id="perfMedian">-</span></div>
-        <div class="pillBig"><span class="k">승률</span><span class="v" id="perfWin">-</span></div>
-        <div class="pillBig"><span class="k">Best</span><span class="v" id="perfBest">-</span></div>
-        <div class="pillBig"><span class="k">Worst</span><span class="v" id="perfWorst">-</span></div>
-      </div>
-
-      <div class="stats" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
-        <div class="card clickable" id="scoreCard">
-          <div class="t"><span>신뢰도 보드</span><span class="badgeIcon">🧠</span></div>
-          <div class="n">Score</div>
-          <div class="muted" style="margin-top:6px; font-size:12px;">최근 N거래일 기준</div>
-        </div>
-
-        <div class="card clickable" id="topCard">
-          <div class="t"><span>TOP 성과</span><span class="badgeIcon" style="border-color:rgba(234,179,8,.35);">🏆</span></div>
-          <div class="n" id="topName">-</div>
-          <div class="muted" style="margin-top:6px; font-size:12px;">Return 기준</div>
-        </div>
-
-        <div class="card clickable" id="worstCard">
-          <div class="t"><span>Worst 성과</span><span class="badgeIcon" style="border-color:rgba(239,68,68,.35);">🥤</span></div>
-          <div class="n" id="worstName">-</div>
-          <div class="muted" style="margin-top:6px; font-size:12px;">Return 기준</div>
-        </div>
-
-        <div class="card clickable" id="howCard">
-          <div class="t"><span>설명</span><span class="badgeIcon" style="border-color:rgba(148,163,184,.4);">ℹ️</span></div>
-          <div class="n">How</div>
-          <div class="muted" style="margin-top:6px; font-size:12px;">점수 산식</div>
-        </div>
-      </div>
-
-      <div class="panel" style="margin-top:14px;">
+      <div class="panel">
         <div class="panelHead">
-          <h2>성과 리스트 (Storage)</h2>
-          <div class="count"><span id="perfRowCount">0</span>건</div>
+          <h2 id="screenTitle">검출 종목 리스트 (ALL)</h2>
+          <div class="count"><span id="screenCount">0</span>건</div>
         </div>
 
-        <!-- ✅ 성과탭도 “리스트는 영역 내 세로 스크롤 + 가로 스크롤” -->
-        <div class="tableScroll" id="perfTableScroll" style="max-height: 62vh;">
+        <div style="padding:10px 12px; display:flex; gap:8px; flex-wrap:wrap;">
+          <span class="pill on" data-list="ALL">ALL</span>
+          <span class="pill" data-list="TREND">Trend</span>
+          <span class="pill" data-list="PULLBACK">Pullback</span>
+          <span class="pill" data-list="BREAKOUT">Breakout</span>
+          <span class="pill" data-list="FAV">⭐ 찜</span>
+        </div>
+
+        <div class="tableScroll" id="screenTableWrap">
           <table>
             <thead>
-              <tr>
-                <th>DETECTDATE</th>
-                <th>CODE</th>
-                <th>NAME</th>
-                <th>SIGNAL_TYPE</th>
-                <th class="numRight">ENTRY</th>
-                <th class="numRight">D1</th>
-                <th class="numRight">D3</th>
-                <th class="numRight">D5</th>
-                <th class="numRight">D7</th>
-                <th class="numRight">D9</th>
-                <th class="numRight">SCORE</th>
-              </tr>
+              <tr id="screenThead"></tr>
             </thead>
-            <tbody id="perfTbody">
-              <tr><td colspan="11" class="center muted" style="padding:28px;">Storage 데이터 로딩 중...</td></tr>
-            </tbody>
+            <tbody id="screenTbody"></tbody>
           </table>
         </div>
       </div>
     </section>
 
-  </main>
+    <!-- =======================
+         PERF TAB
+    ======================== -->
+    <section id="perfView" style="display:none;">
+
+      <div class="perfTop">
+        <div class="perfChips" id="perfChips">
+          <span class="chip" id="chipN">최근 10 거래일</span>
+          <span class="chip" id="chipSample">표본 -</span>
+          <span class="chip" id="chipAvg">평균 -</span>
+          <span class="chip" id="chipMed">중앙값 -</span>
+          <span class="chip" id="chipWin">승률 -</span>
+          <span class="chip" id="chipBest">Best -</span>
+          <span class="chip" id="chipWorst">Worst -</span>
+        </div>
+
+        <div class="perfCards" id="perfCards">
+          <button class="pCard active" data-perf="SCORE">
+            <div class="t"><span>신뢰도 보드</span><span class="badgeIcon">🧠</span></div>
+            <div class="n">Score</div>
+            <div class="sub">최근 N거래일 기준</div>
+          </button>
+
+          <button class="pCard" data-perf="TOP">
+            <div class="t"><span>TOP 성과</span><span class="badgeIcon" style="border-color:rgba(234,179,8,.35);color:#fde68a;">🏆</span></div>
+            <div class="n">Top</div>
+            <div class="sub">Score 기준</div>
+          </button>
+
+          <button class="pCard" data-perf="WORST">
+            <div class="t"><span>Worst 성과</span><span class="badgeIcon" style="border-color:rgba(239,68,68,.35);color:#fecaca;">🥤</span></div>
+            <div class="n">Worst</div>
+            <div class="sub">Score 기준</div>
+          </button>
+
+          <button class="pCard" data-perf="HISTORY">
+            <div class="t"><span>종목 히스토리</span><span class="badgeIcon" style="border-color:rgba(59,130,246,.35);color:#bfdbfe;">🗂️</span></div>
+            <div class="n">History</div>
+            <div class="sub">중복포착 확인</div>
+          </button>
+
+          <button class="pCard" data-perf="HOW">
+            <div class="t"><span>설명</span><span class="badgeIcon" style="border-color:rgba(148,163,184,.35);color:#e5e7eb;">ℹ️</span></div>
+            <div class="n">How</div>
+            <div class="sub">점수 산식</div>
+          </button>
+        </div>
+      </div>
+
+      <div class="panel" id="perfPanel">
+        <div class="panelHead">
+          <h2 id="perfPanelTitle">신호 신뢰도 보드</h2>
+          <div class="count"><span id="perfRowCount">0</span>건</div>
+        </div>
+
+        <div class="tableScroll" id="perfTableWrap">
+          <table>
+            <thead><tr id="perfThead"></tr></thead>
+            <tbody id="perfTbody">
+              <tr><td class="center muted" style="padding:28px;">Storage 로딩 전</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="backdrop" id="settingsBackdrop">
+  <div class="modal">
+    <div class="modalHead">
+      <h3>Google Sheet CSV URL 설정</h3>
+      <button class="btn" id="btnCloseSettings">✕</button>
+    </div>
+    <div class="modalBody">
+      <div class="row">
+        <label>ALL</label>
+        <input id="urlALL" placeholder="ALL CSV URL" />
+      </div>
+      <div class="row">
+        <label>TREND</label>
+        <input id="urlTREND" placeholder="Trend CSV URL" />
+      </div>
+      <div class="row">
+        <label>PULLBACK</label>
+        <input id="urlPULLBACK" placeholder="Pullback CSV URL" />
+      </div>
+      <div class="row">
+        <label>BREAKOUT</label>
+        <input id="urlBREAKOUT" placeholder="Breakout CSV URL" />
+      </div>
+      <div class="row">
+        <label>STORAGE</label>
+        <input id="urlSTORAGE" placeholder="Storage CSV URL" />
+      </div>
+    </div>
+    <div class="modalFoot">
+      <button class="btn" id="btnResetUrls">기본값</button>
+      <button class="btn primary" id="btnSaveUrls">URL 저장 및 새로고침</button>
+    </div>
+  </div>
 </div>
 
 <script>
-/** =========================
- *  CONFIG (URLs)
- *  ========================= */
-const initialUrls = {
-  ALL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=0&single=true&output=csv",
-  TREND: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=1981708246&single=true&output=csv",
-  PULLBACK: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=852505203&single=true&output=csv",
-  BREAKOUT: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=258627301&single=true&output=csv",
+/* =========================
+   STATE
+========================= */
+const DEFAULT_URLS = {
+  ALL: "",
+  TREND: "",
+  PULLBACK: "",
+  BREAKOUT: "",
   STORAGE: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=2034892211&single=true&output=csv"
 };
 
-const LS_KEY = "quant_screener_urls_v4";
-const FAV_KEY = "quant_screener_favs_v2"; // ✅ 버전 올려서 iPad ‘유령 1’ 원천 차단
+let urls = loadUrls();
+let screenData = { ALL: [], TREND: [], PULLBACK: [], BREAKOUT: [] };
+let storageData = [];
+let currentList = "ALL";
+let perfView = "SCORE";
+let perfN = 10;
 
-let sheetUrls = loadUrls();
+let favorites = loadFavs(); // Set(code)
 
-let data = [];
-let filterType = "ALL";
-let detailStock = null;
+/* =========================
+   HELPERS
+========================= */
+function $(id){ return document.getElementById(id); }
 
-let storageRows = []; // perf
+function nowStamp(){
+  const d = new Date();
+  const pad = n => String(n).padStart(2,"0");
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+function escapeHtml(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+function fmt(n){
+  const x = Number(n);
+  if(!Number.isFinite(x)) return "-";
+  return x.toLocaleString("en-US");
+}
+function pad6(v){
+  const s = String(v ?? "").trim();
+  if(!s) return "";
+  const only = s.replaceAll(/[^0-9]/g,"");
+  return only.padStart(6,"0");
+}
+function asNum(x){
+  const n = Number(String(x ?? "").replaceAll(",",""));
+  return Number.isFinite(n) ? n : NaN;
+}
+function pct(x){
+  if(!Number.isFinite(x)) return "-";
+  return (x*100).toFixed(2) + "%";
+}
+function dateOnly(s){
+  const t = String(s ?? "").trim();
+  return t.slice(0,10);
+}
+function sigLabel(r){
+  const st = String(r.Signal_Type ?? "").trim();
+  if(st) return st;
+  const a = [];
+  if(String(r.Trend ?? "").toLowerCase()==="true") a.push("Trend");
+  if(String(r.Pullback ?? "").toLowerCase()==="true") a.push("Pullback");
+  if(String(r.Breakout ?? "").toLowerCase()==="true") a.push("Breakout");
+  return a.join("+") || "-";
+}
 
-const $ = (id) => document.getElementById(id);
-const settingsPanel = $("settingsPanel");
-const statusPill = $("statusPill");
-const lastUpdatedPill = $("lastUpdatedPill");
-const tbody = $("tbody");
-const rightPane = $("rightPane");
-const perfTbody = $("perfTbody");
+/* =========================
+   CSV PARSER
+========================= */
+function parseCSV(text){
+  const rows = [];
+  let cur = "", inQ = false;
+  const out = [];
+  for(let i=0;i<text.length;i++){
+    const ch = text[i];
+    const nx = text[i+1];
+    if(inQ){
+      if(ch === '"' && nx === '"'){ cur += '"'; i++; }
+      else if(ch === '"'){ inQ = false; }
+      else { cur += ch; }
+    }else{
+      if(ch === '"'){ inQ = true; }
+      else if(ch === ","){ out.push(cur); cur=""; }
+      else if(ch === "\n"){
+        out.push(cur); cur="";
+        rows.push(out.slice()); out.length=0;
+      }else if(ch === "\r"){
+        // skip
+      }else{
+        cur += ch;
+      }
+    }
+  }
+  out.push(cur);
+  rows.push(out.slice());
 
-const tabScreen = $("tabScreen");
-const tabPerf = $("tabPerf");
-const screenSection = $("screenSection");
-const perfSection = $("perfSection");
+  const header = rows.shift()?.map(h=>String(h).trim()) ?? [];
+  const data = rows
+    .filter(r => r.some(c => String(c ?? "").trim() !== ""))
+    .map(r => {
+      const obj = {};
+      for(let i=0;i<header.length;i++){
+        obj[header[i] || ("col"+i)] = r[i] ?? "";
+      }
+      return obj;
+    });
+  return { header, data };
+}
 
-/** ===== FAV persistence ===== */
-let selectedCodes = loadFavs();
+async function fetchCSV(url){
+  if(!url) return { header: [], data: [] };
+  const bust = (url.includes("?") ? "&" : "?") + "ts=" + Date.now();
+  const res = await fetch(url + bust, { cache:"no-store" });
+  const txt = await res.text();
+  return parseCSV(txt);
+}
 
+/* =========================
+   FAVORITES
+========================= */
 function loadFavs(){
   try{
-    const raw = localStorage.getItem(FAV_KEY);
-    if(!raw) return new Set();
+    const raw = localStorage.getItem("YJ_FAVS") || "[]";
     const arr = JSON.parse(raw);
-    const out = new Set();
-    (Array.isArray(arr) ? arr : []).forEach(x=>{
-      const c = pad6(x);
-      if(/^\d{6}$/.test(c)) out.add(c);
-    });
-    return out;
-  }catch{
+    return new Set(arr.map(pad6).filter(Boolean));
+  }catch(e){
     return new Set();
   }
 }
 function saveFavs(){
-  // ✅ 정규화 저장(유령값 제거)
-  const clean = Array.from(selectedCodes).map(pad6).filter(x=>/^\d{6}$/.test(x));
-  localStorage.setItem(FAV_KEY, JSON.stringify(clean));
-  $("statFav").textContent = String(clean.length);
+  localStorage.setItem("YJ_FAVS", JSON.stringify(Array.from(favorites)));
 }
-
-/** ===== UI helpers ===== */
-function setStatus(type, msg){
-  statusPill.classList.remove("ok","warn","err");
-  statusPill.classList.add(type);
-  statusPill.textContent = msg;
-}
-function showError(msg){
-  $("errorBox").style.display = "flex";
-  $("errorMsg").textContent = msg;
-}
-function hideError(){
-  $("errorBox").style.display = "none";
-  $("errorMsg").textContent = "";
-}
-function fmt(n){ return new Intl.NumberFormat("ko-KR").format(n); }
-function toNum(v){
-  if(v === null || v === undefined) return 0;
-  const s = String(v).replaceAll(",","").trim();
-  const x = Number(s);
-  return Number.isFinite(x) ? x : 0;
-}
-function pad6(code){
-  const s = String(code ?? "").replace(/"/g,"").trim();
-  if(/^\d+$/.test(s)) return s.padStart(6,"0");
-  return s;
-}
-function bust(url){
-  return url + (url.includes("?") ? "&" : "?") + "t=" + Date.now();
-}
-function escapeHtml(str){
-  return String(str).replace(/[&<>"']/g, s => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-  }[s]));
-}
-
-/** ===== CSV robust parser ===== */
-function parseCSVRows(text){
-  const rows = [];
-  let row = [];
-  let cur = "";
-  let inQuotes = false;
-
-  for(let i=0; i<text.length; i++){
-    const ch = text[i];
-    const next = text[i+1];
-
-    if(ch === '"'){
-      if(inQuotes && next === '"'){ cur += '"'; i++; }
-      else { inQuotes = !inQuotes; }
-      continue;
-    }
-    if(!inQuotes && ch === ","){ row.push(cur); cur = ""; continue; }
-    if(!inQuotes && ch === "\n"){
-      row.push(cur); rows.push(row);
-      row = []; cur = ""; continue;
-    }
-    if(ch === "\r") continue;
-    cur += ch;
-  }
-  if(cur.length || row.length){ row.push(cur); rows.push(row); }
-  return rows;
-}
-
-function toBool(v){
-  const s = String(v ?? "").trim().toLowerCase();
-  return (s === "true" || s === "1" || s === "y" || s === "yes" || s === "t");
-}
-
-/** ===== Parse ALL sheet ===== */
-function parseAllSheet(text){
-  const rows = parseCSVRows(text).filter(r => r.some(x => String(x).trim() !== ""));
-  if(rows.length < 2) return [];
-
-  const headers = rows[0].map(h => String(h).trim());
-  const idx = (name) => headers.findIndex(h => h === name);
-
-  const iCode = idx("Code");
-  if(iCode < 0) return [];
-
-  const iName = idx("Name"), iMarket = idx("Market"), iDate = idx("Date");
-  const iTrend = idx("Trend"), iPull = idx("Pullback"), iBreak = idx("Breakout");
-  const iClose = idx("Close"), iVol = idx("Volume"), iTurn = idx("Turnover");
-  const iRSI = idx("RSI14"), iStoch = idx("Stoch_K");
-
-  const out = [];
-  for(const r of rows.slice(1)){
-    const code = pad6(r[iCode]);
-    if(!/^\d{6}$/.test(code)) continue;
-    out.push({
-      Code: code,
-      Name: iName >= 0 ? String(r[iName] ?? "").trim() : "",
-      Market: iMarket >= 0 ? String(r[iMarket] ?? "").trim() : "",
-      Date: iDate >= 0 ? String(r[iDate] ?? "").trim() : "",
-
-      Trend_Signal: iTrend >= 0 ? toBool(r[iTrend]) : false,
-      Pullback_Signal: iPull >= 0 ? toBool(r[iPull]) : false,
-      Breakout_Signal: iBreak >= 0 ? toBool(r[iBreak]) : false,
-
-      Close: iClose >= 0 ? toNum(r[iClose]) : 0,
-      Volume: iVol >= 0 ? toNum(r[iVol]) : 0,
-      Turnover: iTurn >= 0 ? toNum(r[iTurn]) : 0,
-      RSI14: iRSI >= 0 ? toNum(r[iRSI]) : 0,
-      Stoch_K: iStoch >= 0 ? toNum(r[iStoch]) : 0
-    });
-  }
-  return out;
-}
-
-function parseSignalSheetToSet(text){
-  const rows = parseCSVRows(text).filter(r => r.some(x => String(x).trim() !== ""));
-  if(rows.length < 2) return new Set();
-  const headers = rows[0].map(h => String(h).trim());
-  const codeIdx = headers.findIndex(h => h === "Code");
-  const iCode = codeIdx >= 0 ? codeIdx : 0;
-
-  const set = new Set();
-  for(const r of rows.slice(1)){
-    const code = pad6(r[iCode]);
-    if(/^\d{6}$/.test(code)) set.add(code);
-  }
-  return set;
-}
-
-/** ===== Parse STORAGE sheet ===== */
-function parseStorage(text){
-  const rows = parseCSVRows(text).filter(r => r.some(x => String(x).trim() !== ""));
-  if(rows.length < 2) return [];
-
-  const headers = rows[0].map(h => String(h).trim());
-  const idx = (name) => headers.findIndex(h => h === name);
-
-  // 기대 헤더: Code, Name, Market, DetectDate, Signal_Type, EntryPrice, D1,D3,D5,D7,D9 ...
-  const iCode = idx("Code");
-  if(iCode < 0) return [];
-
-  const iName = idx("Name");
-  const iDetect = idx("DetectDate");
-  const iSigType = idx("Signal_Type");
-  const iEntry = idx("EntryPrice");
-
-  const iD1 = idx("D1"), iD3 = idx("D3"), iD5 = idx("D5"), iD7 = idx("D7"), iD9 = idx("D9");
-
-  const out = [];
-  for(const r of rows.slice(1)){
-    const code = pad6(r[iCode]);
-    if(!/^\d{6}$/.test(code)) continue;
-
-    const detectRaw = String(iDetect >= 0 ? (r[iDetect] ?? "") : "").trim();
-    // ✅ 날짜만 쓰게(DetectDate가 혹시 "YYYY-MM-DD 0:00" 섞여도 앞 10자)
-    const detectDate = detectRaw.length >= 10 ? detectRaw.slice(0,10) : detectRaw;
-
-    const rowObj = {
-      DetectDate: detectDate,
-      Code: code,
-      Name: iName>=0 ? String(r[iName] ?? "").trim() : "",
-      Signal_Type: iSigType>=0 ? String(r[iSigType] ?? "").trim() : "",
-      Entry: iEntry>=0 ? toNum(r[iEntry]) : 0,
-      D1: iD1>=0 ? toNum(r[iD1]) : NaN,
-      D3: iD3>=0 ? toNum(r[iD3]) : NaN,
-      D5: iD5>=0 ? toNum(r[iD5]) : NaN,
-      D7: iD7>=0 ? toNum(r[iD7]) : NaN,
-      D9: iD9>=0 ? toNum(r[iD9]) : NaN,
-    };
-    out.push(rowObj);
-  }
-  return out;
-}
-
-/** ===== Score (5항, D1/D3 비중 크게) =====
- *  - weights sum = 1.00
- */
-const W = { D1:0.34, D3:0.26, D5:0.18, D7:0.12, D9:0.10 };
-
-function isFiniteNum(x){ return Number.isFinite(Number(x)); }
-function pickNum(x){ const n = Number(x); return Number.isFinite(n) ? n : NaN; }
-
-function rowScore(r){
-  const d1 = pickNum(r.D1), d3 = pickNum(r.D3), d5 = pickNum(r.D5), d7 = pickNum(r.D7), d9 = pickNum(r.D9);
-  // NaN은 제외하고 가중치 재정규화
-  const pairs = [
-    ["D1", d1], ["D3", d3], ["D5", d5], ["D7", d7], ["D9", d9]
-  ].filter(([k,v]) => Number.isFinite(v));
-  if(!pairs.length) return NaN;
-  const wSum = pairs.reduce((s,[k]) => s + W[k], 0);
-  const score = pairs.reduce((s,[k,v]) => s + (W[k]/wSum)*v, 0);
-  return score;
-}
-
-function pct(x){
-  const n = Number(x);
-  if(!Number.isFinite(n)) return "-";
-  return (n*100).toFixed(2) + "%";
-}
-
-/** ===== Fetch ===== */
-async function fetchText(url){
-  const res = await fetch(bust(url), { cache:"no-store" });
-  if(!res.ok) throw new Error(`HTTP ${res.status}`);
-  return await res.text();
-}
-
-/** ===== Screen Data Fetch ===== */
-async function fetchScreenData(){
-  if(!sheetUrls.ALL){
-    openSettings(true);
-    showError("ALL 시트 URL을 먼저 입력해줘.");
-    return;
-  }
-
-  hideError();
-  setStatus("warn","로딩중...");
-  $("refreshBtn").disabled = true;
-  $("refreshIcon").innerHTML = '<span class="spin"></span>';
-
-  detailStock = null;
-  closeDetail();
-
-  try{
-    const [allText, trendText, pullText, breakText] = await Promise.all([
-      fetchText(sheetUrls.ALL),
-      sheetUrls.TREND ? fetchText(sheetUrls.TREND).catch(()=>null) : Promise.resolve(null),
-      sheetUrls.PULLBACK ? fetchText(sheetUrls.PULLBACK).catch(()=>null) : Promise.resolve(null),
-      sheetUrls.BREAKOUT ? fetchText(sheetUrls.BREAKOUT).catch(()=>null) : Promise.resolve(null)
-    ]);
-
-    const allData = parseAllSheet(allText);
-    if(!allData.length) throw new Error("ALL 시트 파싱 실패. 헤더/데이터 형식을 확인해줘.");
-
-    const trendSet = trendText ? parseSignalSheetToSet(trendText) : null;
-    const pullSet  = pullText  ? parseSignalSheetToSet(pullText)  : null;
-    const breakSet = breakText ? parseSignalSheetToSet(breakText) : null;
-
-    data = allData.map(s => {
-      if(trendSet) s.Trend_Signal = trendSet.has(s.Code) || s.Trend_Signal;
-      if(pullSet)  s.Pullback_Signal = pullSet.has(s.Code) || s.Pullback_Signal;
-      if(breakSet) s.Breakout_Signal = breakSet.has(s.Code) || s.Breakout_Signal;
-      return s;
-    });
-
-    // ✅ 유령 찜 정리: 현재 로딩된 코드에 존재하는 것만 남김 (iPad ‘1’ 방지)
-    const validCodes = new Set(data.map(x=>x.Code));
-    selectedCodes = new Set(Array.from(selectedCodes).filter(c => validCodes.has(c)));
-    saveFavs();
-
-    data.sort((a,b) => {
-      if(b.Breakout_Signal !== a.Breakout_Signal) return b.Breakout_Signal ? 1 : -1;
-      if(b.Pullback_Signal !== a.Pullback_Signal) return b.Pullback_Signal ? 1 : -1;
-      if(b.Trend_Signal !== a.Trend_Signal) return b.Trend_Signal ? 1 : -1;
-      return toNum(b.Turnover) - toNum(a.Turnover);
-    });
-
-    updateStats();
-    renderScreenTable();
-
-    lastUpdatedPill.textContent = "갱신: " + new Date().toLocaleTimeString("ko-KR");
-    setStatus("ok","최신 반영");
-    openSettings(false);
-
-  }catch(e){
-    data = [];
-    updateStats();
-    renderScreenEmpty("데이터 로딩 실패: " + (e.message || String(e)));
-    setStatus("err","실패");
-    showError(e.message || String(e));
-  }finally{
-    $("refreshBtn").disabled = false;
-    $("refreshIcon").textContent = "↻";
-  }
-}
-
-/** ===== Perf Data Fetch ===== */
-async function fetchPerfData(){
-  if(!sheetUrls.STORAGE){
-    renderPerfEmpty("Storage CSV URL을 확인해줘. (설정 ⚙️ → STORAGE)");
-    return;
-  }
-  try{
-    const text = await fetchText(sheetUrls.STORAGE);
-    const rows = parseStorage(text);
-    if(!rows.length){
-      renderPerfEmpty("Storage 데이터가 비어있거나 파싱 실패. 헤더/데이터를 확인해줘.");
-      return;
-    }
-    // Score 계산
-    storageRows = rows.map(r => ({...r, Score: rowScore(r)}));
-
-    // 최신순
-    storageRows.sort((a,b) => (b.DetectDate||"").localeCompare(a.DetectDate||""));
-
-    renderPerfTable();
-    computePerfSummary();
-
-  }catch(e){
-    renderPerfEmpty("Storage 로딩 실패: " + (e.message || String(e)));
-  }
-}
-
-/** ===== Screen Rendering ===== */
-function getFiltered(){
-  if(filterType === "TREND") return data.filter(x => x.Trend_Signal);
-  if(filterType === "PULLBACK") return data.filter(x => x.Pullback_Signal);
-  if(filterType === "BREAKOUT") return data.filter(x => x.Breakout_Signal);
-  if(filterType === "FAV") return data.filter(x => selectedCodes.has(x.Code));
-  return data;
-}
-function updateStats(){
-  $("statTotal").textContent = fmt(data.length);
-  $("statTrend").textContent = fmt(data.filter(x=>x.Trend_Signal).length);
-  $("statPullback").textContent = fmt(data.filter(x=>x.Pullback_Signal).length);
-  $("statBreakout").textContent = fmt(data.filter(x=>x.Breakout_Signal).length);
-  $("statFav").textContent = String(selectedCodes.size);
-}
-function renderScreenEmpty(msg){
-  tbody.innerHTML = `<tr><td colspan="8" class="center muted" style="padding:28px;">${escapeHtml(msg)}</td></tr>`;
-  $("rowCount").textContent = "0";
-}
-function rsiColor(v){
-  const x = Number(v)||0;
-  if(x <= 30) return "#60a5fa";
-  if(x >= 70) return "#fb7185";
-  return "#94a3b8";
-}
-function stochColor(v){
-  const x = Number(v)||0;
-  if(x <= 20) return "#60a5fa";
-  if(x >= 80) return "#fb7185";
-  return "#94a3b8";
-}
-function renderScreenTable(){
-  const rows = getFiltered();
-  $("filterLabel").textContent = filterType;
-  $("rowCount").textContent = String(rows.length);
-
-  if(filterType === "FAV" && selectedCodes.size === 0){
-    renderScreenEmpty("찜한 종목이 없어. 리스트에서 노란 점으로 찍어줘 ⭐");
-    return;
-  }
-  if(!rows.length){
-    renderScreenEmpty("조건에 맞는 종목이 없어.");
-    return;
-  }
-
-  tbody.innerHTML = rows.map((s) => {
-    const isMulti = selectedCodes.has(s.Code);
-    const turnoverEok = Math.round(toNum(s.Turnover) / 100000000);
-    const sigs = [
-      s.Breakout_Signal ? `<span class="sig red">돌파</span>` : "",
-      s.Pullback_Signal ? `<span class="sig yellow">눌림</span>` : "",
-      s.Trend_Signal ? `<span class="sig green">추세</span>` : "",
-    ].join("");
-
-    return `
-      <tr data-code="${s.Code}">
-        <td class="mono muted">${escapeHtml(s.Code)}</td>
-        <td class="nameCell">${escapeHtml(s.Name || "")}</td>
-
-        <td class="center">
-          <span class="selectHit" data-action="select" data-code="${s.Code}">
-            <span class="selectDot ${isMulti ? "on" : ""}"></span>
-          </span>
-        </td>
-
-        <td class="numRight mono" style="color:#fb7185;">
-          ${fmt(Math.round(toNum(s.Close)))}
-        </td>
-
-        <td class="numRight mono">${fmt(turnoverEok)}억</td>
-
-        <td class="center mono" style="color:${rsiColor(s.RSI14)};">
-          ${s.RSI14 ? Number(s.RSI14).toFixed(1) : "-"}
-        </td>
-
-        <td class="center mono" style="color:${stochColor(s.Stoch_K)};">
-          ${s.Stoch_K ? Number(s.Stoch_K).toFixed(1) : "-"}
-        </td>
-
-        <td class="center"><div class="sigWrap">${sigs}</div></td>
-      </tr>
-    `;
-  }).join("");
-}
-
-/** ===== Detail ===== */
-function openDetail(stock){
-  detailStock = stock;
-
-  $("detailMeta").textContent = `${stock.Market || "-"} | ${stock.Code}`;
-  $("detailName").textContent = stock.Name || "-";
-  $("detailClose").textContent = fmt(Math.round(toNum(stock.Close)));
-  $("detailRSI").textContent = stock.RSI14 ? Number(stock.RSI14).toFixed(2) : "-";
-  $("detailStoch").textContent = stock.Stoch_K ? Number(stock.Stoch_K).toFixed(2) : "-";
-  $("detailVol").textContent = fmt(Math.round(toNum(stock.Volume)));
-
-  const ul = $("detailSignals");
-  ul.innerHTML = "";
-  if(stock.Breakout_Signal) ul.innerHTML += `<li><b>박스권 돌파:</b> 거래량 + 모멘텀 동반 상단 돌파 가능성</li>`;
-  if(stock.Pullback_Signal) ul.innerHTML += `<li><b>눌림목:</b> 상승 추세 중 조정 이후 재시동 가능성</li>`;
-  if(stock.Trend_Signal) ul.innerHTML += `<li><b>추세 추종:</b> 추세 지속 + 거래량 확대 가능성</li>`;
-  if(!ul.innerHTML) ul.innerHTML = `<li class="muted">신호 정보 없음</li>`;
-
-  const eok = Math.round(toNum(stock.Turnover) / 100000000);
-  $("detailFoot").innerHTML = `기준일: ${escapeHtml(stock.Date || "-")}<br/>거래대금: ${fmt(eok)}억원`;
-
-  rightPane.classList.add("open");
-
-  const frame = document.getElementById("tvFrame");
-  if(frame){
-    frame.src =
-      "https://www.tradingview.com/widgetembed/?" +
-      "symbol=KRX:" + stock.Code +
-      "&interval=D" +
-      "&theme=dark" +
-      "&hidesidetoolbar=1" +
-      "&hidetoptoolbar=1";
-  }
-}
-function closeDetail(){
-  rightPane.classList.remove("open");
-  detailStock = null;
-}
-function toggleDetailByCode(code){
-  const stock = data.find(x => x.Code === code);
-  if(!stock) return;
-  if(detailStock && detailStock.Code === code) closeDetail();
-  else openDetail(stock);
-}
-function toggleSelect(code){
-  if(selectedCodes.has(code)) selectedCodes.delete(code);
-  else selectedCodes.add(code);
+function toggleFav(code){
+  const c = pad6(code);
+  if(!c) return;
+  if(favorites.has(c)) favorites.delete(c);
+  else favorites.add(c);
   saveFavs();
-  renderScreenTable();
-  updateStats();
+  renderScreen();
 }
 
-/** ===== Perf Rendering ===== */
-function renderPerfEmpty(msg){
-  $("perfRowCount").textContent = "0";
-  perfTbody.innerHTML = `<tr><td colspan="11" class="center muted" style="padding:28px;">${escapeHtml(msg)}</td></tr>`;
-}
-function renderPerfTable(){
-  const rows = storageRows;
-  $("perfRowCount").textContent = String(rows.length);
-
-  if(!rows.length){
-    renderPerfEmpty("Storage 데이터가 없어.");
-    return;
-  }
-
-  perfTbody.innerHTML = rows.map(r=>{
-    const score = r.Score;
-    return `
-      <tr>
-        <td class="mono muted">${escapeHtml(r.DetectDate || "-")}</td>
-        <td class="mono">${escapeHtml(r.Code)}</td>
-        <td class="nameCell">${escapeHtml(r.Name || "")}</td>
-        <td class="mono muted">${escapeHtml(r.Signal_Type || "")}</td>
-        <td class="numRight mono">${fmt(Math.round(toNum(r.Entry)))}</td>
-        <td class="numRight mono" style="color:${Number(r.D1)>=0? '#a7f3d0':'#fecaca'}">${pct(r.D1)}</td>
-        <td class="numRight mono" style="color:${Number(r.D3)>=0? '#a7f3d0':'#fecaca'}">${pct(r.D3)}</td>
-        <td class="numRight mono" style="color:${Number(r.D5)>=0? '#a7f3d0':'#fecaca'}">${pct(r.D5)}</td>
-        <td class="numRight mono" style="color:${Number(r.D7)>=0? '#a7f3d0':'#fecaca'}">${pct(r.D7)}</td>
-        <td class="numRight mono" style="color:${Number(r.D9)>=0? '#a7f3d0':'#fecaca'}">${pct(r.D9)}</td>
-        <td class="numRight mono" style="font-weight:950;">${Number.isFinite(score)? pct(score) : "-"}</td>
-      </tr>
-    `;
-  }).join("");
-}
-
-function median(arr){
-  const a = arr.slice().sort((x,y)=>x-y);
-  if(!a.length) return NaN;
-  const m = Math.floor(a.length/2);
-  return (a.length%2) ? a[m] : (a[m-1]+a[m])/2;
-}
-
-function computePerfSummary(){
-  const rows = storageRows;
-  const scores = rows.map(r=>r.Score).filter(x=>Number.isFinite(x));
-  const n = scores.length;
-
-  $("perfN").textContent = "-"; // Storage만으론 “최근 N거래일”은 DetectDate 유니크 count로 보여줌
-  const uniqDates = new Set(rows.map(r=>r.DetectDate).filter(Boolean));
-  $("perfN").textContent = String(uniqDates.size);
-
-  $("perfSample").textContent = String(rows.length);
-
-  const avg = n ? scores.reduce((s,x)=>s+x,0)/n : NaN;
-  const med = n ? median(scores) : NaN;
-  const win = n ? (scores.filter(x=>x>0).length / n) : NaN;
-
-  $("perfAvg").textContent = Number.isFinite(avg) ? pct(avg) : "-";
-  $("perfMedian").textContent = Number.isFinite(med) ? pct(med) : "-";
-  $("perfWin").textContent = Number.isFinite(win) ? (win*100).toFixed(1)+"%" : "-";
-
-  // Best / Worst (Score 기준)
-  const best = rows.filter(r=>Number.isFinite(r.Score)).sort((a,b)=>b.Score-a.Score)[0];
-  const worst = rows.filter(r=>Number.isFinite(r.Score)).sort((a,b)=>a.Score-b.Score)[0];
-
-  $("perfBest").textContent = best ? `${best.Name || best.Code} ${pct(best.Score)}` : "-";
-  $("perfWorst").textContent = worst ? `${worst.Name || worst.Code} ${pct(worst.Score)}` : "-";
-
-  $("topName").textContent = best ? `${best.Name || best.Code} ${pct(best.Score)}` : "-";
-  $("worstName").textContent = worst ? `${worst.Name || worst.Code} ${pct(worst.Score)}` : "-";
-}
-
-/** ===== How Modal ===== */
-function buildHowText(){
-  // ✅ “맘대로 바뀐 설명” 원복 + D7 포함(5항 가중치) + 알럿 스타일
-  const wText = `Score = w1·Avg(D1) + w3·Avg(D3) + w5·Avg(D5) + w7·Avg(D7) + w9·Avg(D9)
-
-가중치(합=1.00)
-- w1(D1)=0.34
-- w3(D3)=0.26
-- w5(D5)=0.18
-- w7(D7)=0.12
-- w9(D9)=0.10
-
-규칙
-- Dn 값이 없는 표본은 제외하고, 남은 가중치를 “재정규화”해서 Score를 계산해.
-- 표본이 너무 적으면 패널티 적용:
-  · n < 5  → Score × 0.70
-  · n < 10 → Score × 0.85
-- 해석: “이 신호 조합이 최근 구간에서 얼마나 잘 먹히는지”를 한 줄로 요약한 점수야.`;
-
-  return wText;
-}
-
-function openHow(){
-  $("howBody").textContent = buildHowText();
-  $("howModal").classList.add("open");
-}
-function closeHow(){
-  $("howModal").classList.remove("open");
-}
-
-/** ===== Settings ===== */
+/* =========================
+   URLS
+========================= */
 function loadUrls(){
   try{
-    const raw = localStorage.getItem(LS_KEY);
-    if(!raw) return {...initialUrls};
+    const raw = localStorage.getItem("YJ_URLS");
+    if(!raw) return {...DEFAULT_URLS};
     const obj = JSON.parse(raw);
-    return { ...initialUrls, ...obj };
-  }catch{
-    return {...initialUrls};
+    return { ...DEFAULT_URLS, ...obj };
+  }catch(e){
+    return {...DEFAULT_URLS};
   }
 }
 function saveUrls(){
-  localStorage.setItem(LS_KEY, JSON.stringify(sheetUrls));
-}
-function openSettings(open){
-  settingsPanel.classList.toggle("open", !!open);
-  settingsPanel.setAttribute("aria-hidden", open ? "false" : "true");
+  localStorage.setItem("YJ_URLS", JSON.stringify(urls));
 }
 
-/** ===== Tabs ===== */
-function setTab(which){
-  const isScreen = (which === "screen");
-  tabScreen.classList.toggle("active", isScreen);
-  tabPerf.classList.toggle("active", !isScreen);
-  screenSection.style.display = isScreen ? "" : "none";
-  perfSection.style.display = isScreen ? "none" : "";
-  closeDetail();
-  // 성과탭 들어갈 때 Storage 로드
-  if(!isScreen) fetchPerfData();
+/* =========================
+   TABS
+========================= */
+function showTab(which){
+  $("tabScreen").classList.toggle("active", which==="SCREEN");
+  $("tabPerf").classList.toggle("active", which==="PERF");
+  $("screenView").style.display = (which==="SCREEN") ? "" : "none";
+  $("perfView").style.display = (which==="PERF") ? "" : "none";
 }
 
-/** ===== Bind ===== */
-function bind(){
-  $("settingsBtn").addEventListener("click", () => openSettings(true));
-  $("settingsCloseBtn").addEventListener("click", () => openSettings(false));
+/* =========================
+   SCREEN RENDER
+========================= */
+function screenHeaderCols(){
+  return [
+    { key:"Code", label:"종목코드", cls:"mono muted" },
+    { key:"Name", label:"종목명" },
+    { key:"Select", label:"선택", cls:"center" },
+    { key:"Value", label:"현재가", cls:"numRight mono" },
+    { key:"Volume", label:"거래대금", cls:"numRight mono" },
+    { key:"RSI", label:"RSI", cls:"numRight mono" },
+    { key:"StochK", label:"STOCH K", cls:"numRight mono" },
+    { key:"Signal", label:"SIGNAL", cls:"center" },
+  ];
+}
 
-  $("refreshBtn").addEventListener("click", async () => {
-    await fetchScreenData();
-    // 성과탭이 열려있으면 성과도 새로
-    if(perfSection.style.display !== "none") fetchPerfData();
+function renderScreen(){
+  // stats
+  $("statAll").textContent = fmt(screenData.ALL.length);
+  $("statTrend").textContent = fmt(screenData.TREND.length);
+  $("statPullback").textContent = fmt(screenData.PULLBACK.length);
+  $("statBreakout").textContent = fmt(screenData.BREAKOUT.length);
+  $("statFav").textContent = fmt(favorites.size);
+
+  // choose rows
+  let rows = [];
+  if(currentList==="FAV"){
+    const all = screenData.ALL.slice();
+    rows = all.filter(r => favorites.has(pad6(r.Code)));
+    $("screenTitle").textContent = `검출 종목 리스트 (찜)`;
+  }else{
+    rows = screenData[currentList] || [];
+    $("screenTitle").textContent = `검출 종목 리스트 (${currentList})`;
+  }
+  $("screenCount").textContent = String(rows.length);
+
+  // header
+  const cols = screenHeaderCols();
+  $("screenThead").innerHTML = cols.map(c=>`<th class="${c.cls||""}">${escapeHtml(c.label)}</th>`).join("");
+
+  // body
+  $("screenTbody").innerHTML = rows.map(r=>{
+    const code = pad6(r.Code);
+    const isFav = favorites.has(code);
+    const signalTxt = String(r.Signal ?? "").trim() || sigLabel(r);
+
+    const value = r.Price ?? r.Close ?? r.Close_Today ?? r.CloseToday ?? "";
+    const vol = r.Volume ?? r.TradingValue ?? r.TradeValue ?? r.거래대금 ?? "";
+    const rsi = r.RSI ?? "";
+    const stoch = r["STOCH K"] ?? r.StochK ?? r.Stoch_K ?? "";
+
+    return `
+      <tr>
+        <td class="mono muted">${escapeHtml(code)}</td>
+        <td>${escapeHtml(r.Name ?? "")}</td>
+        <td class="center">
+          <span class="pill ${isFav ? "on":""}" data-fav="${escapeHtml(code)}">${isFav ? "⭐" : "☆"}</span>
+        </td>
+        <td class="numRight mono">${escapeHtml(String(value))}</td>
+        <td class="numRight mono">${escapeHtml(String(vol))}</td>
+        <td class="numRight mono">${escapeHtml(String(rsi))}</td>
+        <td class="numRight mono">${escapeHtml(String(stoch))}</td>
+        <td class="center">
+          <span class="pill">${escapeHtml(signalTxt || "-")}</span>
+        </td>
+      </tr>
+    `;
+  }).join("") || `<tr><td colspan="8" class="center muted" style="padding:28px;">데이터 없음</td></tr>`;
+
+  // bind fav click
+  document.querySelectorAll('[data-fav]').forEach(el=>{
+    el.onclick = () => toggleFav(el.getAttribute("data-fav"));
   });
+}
 
-  $("saveAndRefreshBtn").addEventListener("click", () => {
-    sheetUrls = {
-      ALL: $("urlALL").value.trim(),
-      TREND: $("urlTREND").value.trim(),
-      PULLBACK: $("urlPULLBACK").value.trim(),
-      BREAKOUT: $("urlBREAKOUT").value.trim(),
-      STORAGE: $("urlSTORAGE").value.trim(),
-    };
-    saveUrls();
-    fetchScreenData();
-    if(perfSection.style.display !== "none") fetchPerfData();
-    openSettings(false);
-  });
+/* =========================
+   PERF (성과) CALC
+========================= */
+function scoreOfRow(r){
+  // 5항 가중치: D1/D3 비중 크게
+  // D1 0.35 / D3 0.25 / D5 0.20 / D7 0.12 / D9 0.08
+  const d1 = asNum(r.D1), d3 = asNum(r.D3), d5 = asNum(r.D5), d7 = asNum(r.D7), d9 = asNum(r.D9);
+  const parts = [
+    [d1, 0.35],
+    [d3, 0.25],
+    [d5, 0.20],
+    [d7, 0.12],
+    [d9, 0.08],
+  ].filter(([v]) => Number.isFinite(v));
+  if(!parts.length) return NaN;
 
-  // Tabs
-  tabScreen.addEventListener("click", () => setTab("screen"));
-  tabPerf.addEventListener("click", () => setTab("perf"));
+  const wsum = parts.reduce((a, b)=>a+b[1], 0);
+  const s = parts.reduce((a, [v,w]) => a + v*w, 0) / wsum;
+  return s;
+}
 
-  // Filter cards
-  document.querySelectorAll(".card[data-filter]").forEach(el => {
-    el.addEventListener("click", () => {
-      filterType = el.dataset.filter;
-      closeDetail();
-      renderScreenTable();
-    });
-  });
+function uniqueRecentDates(rows, n){
+  const dates = Array.from(new Set(rows.map(r => dateOnly(r.DetectDate)).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x))));
+  dates.sort((a,b)=> (a<b?1:-1));
+  return dates.slice(0, n);
+}
 
-  // Screen table interactions
-  tbody.addEventListener("click", (e) => {
-    const t = e.target;
+function filterByRecentN(rows, n){
+  const recent = uniqueRecentDates(rows, n);
+  const set = new Set(recent);
+  return rows.filter(r => set.has(dateOnly(r.DetectDate)));
+}
 
-    const hit = t.closest("[data-action='select']");
-    if(hit && hit.dataset && hit.dataset.code){
-      e.stopPropagation();
-      toggleSelect(hit.dataset.code);
-      return;
+function updatePerfChips(rowsN){
+  const recent = uniqueRecentDates(rowsN, perfN);
+  $("chipN").textContent = `최근 ${recent.length} 거래일`;
+  $("chipSample").textContent = `표본 ${rowsN.length}`;
+
+  // 대표 통계는 "Score" 기준으로 (요청: Top/Worst도 Score 기준)
+  const scores = rowsN.map(scoreOfRow).filter(Number.isFinite);
+  const avg = scores.length ? scores.reduce((a,b)=>a+b,0)/scores.length : NaN;
+  const med = scores.length ? scores.slice().sort((a,b)=>a-b)[Math.floor(scores.length/2)] : NaN;
+  const win = scores.length ? (scores.filter(x=>x>0).length / scores.length) : NaN;
+
+  $("chipAvg").textContent = `평균 ${pct(avg)}`;
+  $("chipMed").textContent = `중앙값 ${pct(med)}`;
+  $("chipWin").textContent = `승률 ${Number.isFinite(win) ? (win*100).toFixed(1)+"%" : "-"}`;
+
+  if(scores.length){
+    let best = null, worst = null;
+    for(const r of rowsN){
+      const sc = scoreOfRow(r);
+      if(!Number.isFinite(sc)) continue;
+      if(!best || sc > scoreOfRow(best)) best = r;
+      if(!worst || sc < scoreOfRow(worst)) worst = r;
+    }
+    $("chipBest").textContent = `Best ${(best?.Name||"-")} ${pct(scoreOfRow(best))}`;
+    $("chipWorst").textContent = `Worst ${(worst?.Name||"-")} ${pct(scoreOfRow(worst))}`;
+  }else{
+    $("chipBest").textContent = `Best -`;
+    $("chipWorst").textContent = `Worst -`;
+  }
+}
+
+function renderPerfTable(rowsN, mode){
+  const thead = $("perfThead");
+  const tbody = $("perfTbody");
+
+  const setHead = (cols) => {
+    thead.innerHTML = cols.map(c=>`<th class="${c.cls||""}">${escapeHtml(c.t)}</th>`).join("");
+  };
+  const setBody = (html) => { tbody.innerHTML = html; };
+
+  if(mode === "SCORE"){
+    $("perfPanelTitle").textContent = "신호 신뢰도 보드 (Score)";
+    setHead([
+      {t:"SIGNAL_TYPE"},
+      {t:"표본", cls:"numRight"},
+      {t:"Score", cls:"numRight"},
+      {t:"Avg(D1)", cls:"numRight"},
+      {t:"Avg(D3)", cls:"numRight"},
+      {t:"Avg(D5)", cls:"numRight"},
+      {t:"Avg(D7)", cls:"numRight"},
+      {t:"Avg(D9)", cls:"numRight"},
+    ]);
+
+    const map = new Map();
+    for(const r of rowsN){
+      const key = sigLabel(r);
+      if(!map.has(key)) map.set(key, []);
+      map.get(key).push(r);
     }
 
-    const tr = t.closest("tr[data-code]");
-    if(!tr) return;
+    const items = Array.from(map.entries()).map(([k, arr]) => {
+      const avgN = (field) => {
+        const xs = arr.map(x=>asNum(x[field])).filter(Number.isFinite);
+        return xs.length ? xs.reduce((a,b)=>a+b,0)/xs.length : NaN;
+      };
 
-    toggleDetailByCode(tr.dataset.code);
-  });
+      // 그룹 Score = (row score 평균) * 표본 패널티
+      const sRaw = arr.map(scoreOfRow).filter(Number.isFinite);
+      let s = sRaw.length ? (sRaw.reduce((a,b)=>a+b,0)/sRaw.length) : NaN;
+      if(Number.isFinite(s)){
+        if(arr.length < 5) s *= 0.70;
+        else if(arr.length < 10) s *= 0.85;
+      }
 
-  $("detailCloseBtn").addEventListener("click", () => closeDetail());
+      return { k, n: arr.length, score:s,
+        d1:avgN("D1"), d3:avgN("D3"), d5:avgN("D5"), d7:avgN("D7"), d9:avgN("D9")
+      };
+    });
 
-  // How modal
-  $("howCard").addEventListener("click", openHow);
-  $("scoreCard").addEventListener("click", openHow);
-  $("howCloseBtn").addEventListener("click", closeHow);
-  $("howCloseTop").addEventListener("click", closeHow);
-  $("howModal").addEventListener("click", (e) => {
-    if(e.target === $("howModal")) closeHow();
-  });
+    items.sort((a,b)=> (b.score||-999) - (a.score||-999));
+    $("perfRowCount").textContent = String(items.length);
 
-  // Init inputs
-  $("urlALL").value = sheetUrls.ALL;
-  $("urlTREND").value = sheetUrls.TREND;
-  $("urlPULLBACK").value = sheetUrls.PULLBACK;
-  $("urlBREAKOUT").value = sheetUrls.BREAKOUT;
-  $("urlSTORAGE").value = sheetUrls.STORAGE;
+    setBody(items.map(x=>`
+      <tr>
+        <td>${escapeHtml(x.k)}</td>
+        <td class="numRight mono">${fmt(x.n)}</td>
+        <td class="numRight mono ${Number.isFinite(x.score) && x.score>=0 ? "good":"bad"}">${pct(x.score)}</td>
+        <td class="numRight mono">${pct(x.d1)}</td>
+        <td class="numRight mono">${pct(x.d3)}</td>
+        <td class="numRight mono">${pct(x.d5)}</td>
+        <td class="numRight mono">${pct(x.d7)}</td>
+        <td class="numRight mono">${pct(x.d9)}</td>
+      </tr>
+    `).join("") || `<tr><td colspan="8" class="center muted" style="padding:28px;">데이터 없음</td></tr>`);
+    return;
+  }
 
-  saveFavs();
+  if(mode === "TOP" || mode === "WORST"){
+    $("perfPanelTitle").textContent = mode === "TOP" ? "TOP 성과 (Score 기준)" : "WORST 성과 (Score 기준)";
+    setHead([
+  {t:"DETECTDATE"},
+  {t:"CODE"},
+  {t:"NAME"},
+  {t:"SIGNAL_TYPE"},
+  {t:"ENTRY", cls:"numRight"},
+  {t:"CLOSE_TODAY", cls:"numRight"},
+  {t:"RETURN", cls:"numRight"},
+  {t:"D1", cls:"numRight"},
+  {t:"D3", cls:"numRight"},
+  {t:"D5", cls:"numRight"},
+  {t:"D7", cls:"numRight"},
+  {t:"D9", cls:"numRight"},
+  {t:"SCORE", cls:"numRight"},
+]);
+
+    const rows2 = rowsN.map(r=>({ r, sc: scoreOfRow(r) })).filter(x=>Number.isFinite(x.sc));
+    rows2.sort((a,b)=> mode==="TOP" ? (b.sc-a.sc) : (a.sc-b.sc));
+    const view = rows2.slice(0, 30);
+
+    $("perfRowCount").textContent = String(view.length);
+
+    setBody(view.map(({r,sc})=>`
+      <tr>
+        <td class="mono muted">${escapeHtml(dateOnly(r.DetectDate))}</td>
+        <td class="mono muted">${escapeHtml(pad6(r.Code))}</td>
+        <td>${escapeHtml(r.Name||"")}</td>
+        <td class="mono">${escapeHtml(sigLabel(r))}</td>
+        <td class="numRight mono">${fmt(Math.round(asNum(r.EntryPrice)||0))}</td>
+        <td class="numRight mono">${fmt(Math.round(asNum(r.Close_Today ?? r.CloseToday ?? r.Close ?? r.Price ?? "")||0))}</td>
+        <td class="numRight mono ${Number.isFinite(asNum(r.Return)) && asNum(r.Return)>=0 ? "good":"bad"}">${pct(asNum(r.Return))}</td>
+        <td class="numRight mono">${pct(asNum(r.D1))}</td>
+        <td class="numRight mono">${pct(asNum(r.D3))}</td>
+        <td class="numRight mono">${pct(asNum(r.D5))}</td>
+        <td class="numRight mono">${pct(asNum(r.D7))}</td>
+        <td class="numRight mono">${pct(asNum(r.D9))}</td>
+        <td class="numRight mono ${sc>=0?"good":"bad"}">${pct(sc)}</td>
+      </tr>
+    `).join("") || `<tr><td colspan="11" class="center muted" style="padding:28px;">데이터 없음</td></tr>`);
+    return;
+  }
+
+  if(mode === "HISTORY"){
+    $("perfPanelTitle").textContent = "종목 히스토리 (중복 포착)";
+    setHead([
+      {t:"CODE"},
+      {t:"NAME"},
+      {t:"COUNT", cls:"numRight"},
+      {t:"LAST_DATE"},
+      {t:"SIGNALS"},
+    ]);
+
+    const map = new Map();
+    for(const r of rowsN){
+      const code = pad6(r.Code);
+      if(!map.has(code)) map.set(code, []);
+      map.get(code).push(r);
+    }
+
+    const items = Array.from(map.entries()).map(([code, arr])=>{
+      arr.sort((a,b)=> (dateOnly(a.DetectDate) < dateOnly(b.DetectDate) ? 1 : -1));
+      const last = arr[0];
+      const sigs = Array.from(new Set(arr.map(sigLabel))).slice(0,6).join(", ");
+      return { code, name:last?.Name||"", n:arr.length, last:dateOnly(last?.DetectDate), sigs };
+    }).sort((a,b)=> b.n-a.n);
+
+    $("perfRowCount").textContent = String(items.length);
+
+    setBody(items.map(x=>`
+      <tr>
+        <td class="mono muted">${escapeHtml(x.code)}</td>
+        <td>${escapeHtml(x.name)}</td>
+        <td class="numRight mono">${fmt(x.n)}</td>
+        <td class="mono muted">${escapeHtml(x.last||"-")}</td>
+        <td class="mono">${escapeHtml(x.sigs||"-")}</td>
+      </tr>
+    `).join("") || `<tr><td colspan="5" class="center muted" style="padding:28px;">데이터 없음</td></tr>`);
+    return;
+  }
 }
 
-bind();
-fetchScreenData();
+function showHowAlert(){
+  const msg =
+`[How: 점수/성과 해석]
+- 성과탭의 모든 집계는 Storage 기반이야.
+- 최근 N거래일은 DetectDate(YYYY-MM-DD)의 '고유 날짜' 기준으로 집계해.
+
+[Score 산식]
+- Score = 가중평균(가용한 Dn만으로 정규화)
+  D1 0.35 / D3 0.25 / D5 0.20 / D7 0.12 / D9 0.08   (D1/D3 비중↑)
+- 표본 패널티: n<5 → ×0.70, n<10 → ×0.85
+
+[Top/Worst]
+- Top/Worst는 최근 N거래일 row들의 'Score' 기준으로 정렬해 보여줘.
+
+[History]
+- 종목별 포착 횟수(중복포착)와 최근 날짜, 신호 조합을 보여줘.`;
+  alert(msg);
+}
+
+function setPerfView(next){
+  perfView = next;
+
+  document.querySelectorAll("#perfCards .pCard").forEach(el=>{
+    el.classList.toggle("active", el.dataset.perf === perfView);
+  });
+
+  if(perfView === "HOW"){
+    showHowAlert();
+    perfView = "SCORE";
+    document.querySelectorAll("#perfCards .pCard").forEach(el=>{
+      el.classList.toggle("active", el.dataset.perf === "SCORE");
+    });
+  }
+
+  const rowsAll = storageData.slice();
+  const rowsN = filterByRecentN(rowsAll, perfN);
+
+  updatePerfChips(rowsN);
+  renderPerfTable(rowsN, perfView);
+}
+
+function bindPerfCards(){
+  document.querySelectorAll("#perfCards .pCard").forEach(el=>{
+    el.onclick = () => setPerfView(el.dataset.perf);
+  });
+}
+
+/* =========================
+   DATA LOAD
+========================= */
+async function refreshAll(){
+  $("statusLine").textContent = `갱신: ${nowStamp()}`;
+  // screen csv
+  const [a, t, p, b, s] = await Promise.all([
+    fetchCSV(urls.ALL),
+    fetchCSV(urls.TREND),
+    fetchCSV(urls.PULLBACK),
+    fetchCSV(urls.BREAKOUT),
+    fetchCSV(urls.STORAGE),
+  ]);
+
+  screenData.ALL = a.data || [];
+  screenData.TREND = t.data || [];
+  screenData.PULLBACK = p.data || [];
+  screenData.BREAKOUT = b.data || [];
+  storageData = s.data || [];
+
+  // 찜 목록이 "1"로 튀는 유령값 방지: 로딩된 코드에 없는 찜은 자동 제거
+  const liveCodes = new Set(screenData.ALL.map(r=>pad6(r.Code)).filter(Boolean));
+  const before = favorites.size;
+  favorites = new Set(Array.from(favorites).filter(c => liveCodes.has(c)));
+  if(favorites.size !== before) saveFavs();
+
+  renderScreen();
+  bindScreenPills();
+
+  bindPerfCards();
+  setPerfView("SCORE");
+}
+
+function bindScreenPills(){
+  document.querySelectorAll('[data-list]').forEach(el=>{
+    el.onclick = ()=>{
+      document.querySelectorAll('[data-list]').forEach(x=>x.classList.remove("on"));
+      el.classList.add("on");
+      currentList = el.getAttribute("data-list");
+      renderScreen();
+    };
+  });
+}
+
+/* =========================
+   SETTINGS MODAL
+========================= */
+function openSettings(){
+  $("urlALL").value = urls.ALL || "";
+  $("urlTREND").value = urls.TREND || "";
+  $("urlPULLBACK").value = urls.PULLBACK || "";
+  $("urlBREAKOUT").value = urls.BREAKOUT || "";
+  $("urlSTORAGE").value = urls.STORAGE || "";
+  $("settingsBackdrop").classList.add("show");
+}
+function closeSettings(){
+  $("settingsBackdrop").classList.remove("show");
+}
+
+/* =========================
+   EVENTS
+========================= */
+$("tabScreen").onclick = ()=> showTab("SCREEN");
+$("tabPerf").onclick = ()=> { showTab("PERF"); setPerfView(perfView); };
+
+$("btnRefresh").onclick = refreshAll;
+$("btnLatest").onclick = refreshAll;
+
+$("btnSettings").onclick = openSettings;
+$("btnCloseSettings").onclick = closeSettings;
+$("settingsBackdrop").onclick = (e)=>{ if(e.target === $("settingsBackdrop")) closeSettings(); };
+
+$("btnResetUrls").onclick = ()=>{
+  urls = {...DEFAULT_URLS};
+  saveUrls();
+  openSettings();
+};
+
+$("btnSaveUrls").onclick = async ()=>{
+  urls = {
+    ALL: $("urlALL").value.trim(),
+    TREND: $("urlTREND").value.trim(),
+    PULLBACK: $("urlPULLBACK").value.trim(),
+    BREAKOUT: $("urlBREAKOUT").value.trim(),
+    STORAGE: $("urlSTORAGE").value.trim(),
+  };
+  saveUrls();
+  closeSettings();
+  await refreshAll();
+};
+
+/* =========================
+   INIT
+========================= */
+(function init(){
+  // screen table header set once
+  const cols = screenHeaderCols();
+  $("screenThead").innerHTML = cols.map(c=>`<th class="${c.cls||""}">${escapeHtml(c.label)}</th>`).join("");
+  $("screenTbody").innerHTML = `<tr><td colspan="8" class="center muted" style="padding:28px;">데이터 갱신 버튼을 눌러줘</td></tr>`;
+
+  // perf default head
+  $("perfThead").innerHTML = `<th class="muted">-</th>`;
+  $("perfTbody").innerHTML = `<tr><td class="center muted" style="padding:28px;">데이터 갱신 버튼을 눌러줘</td></tr>`;
+
+  // auto load once if STORAGE exists
+  if(urls.STORAGE){
+    refreshAll();
+  }else{
+    $("statusLine").textContent = `갱신: -`;
+  }
+})();
 </script>
 </body>
 </html>
