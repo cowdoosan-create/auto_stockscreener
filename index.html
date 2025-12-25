@@ -24,7 +24,7 @@
     :root{
       --bg:#0f172a; --panel:#111c33; --panel2:#0b1224;
       --line:#223053; --txt:#e5e7eb; --muted:#94a3b8;
-      --green:#22c55e; --yellow:#eab308; --red:#ef4444;
+      --green:#22c55e; --yellow:#eab308; --red:#ef4444; --blue:#60a5fa;
       --radius:14px; --tap: 44px;
     }
     *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
@@ -97,7 +97,12 @@
       width:100%; padding:10px 12px; border-radius:12px;
       border:1px solid var(--line); background:var(--panel2); color:var(--txt); outline:none;
     }
-    .grid2{ display:grid; grid-template-columns: 110px 1fr; gap:10px; align-items:center; }
+    select{
+      width:100%; padding:10px 12px; border-radius:12px;
+      border:1px solid var(--line); background:var(--panel2); color:var(--txt); outline:none;
+      appearance:none;
+    }
+    .grid2{ display:grid; grid-template-columns: 130px 1fr; gap:10px; align-items:center; }
     @media (max-width: 520px){ .grid2{ grid-template-columns:1fr; } }
     .errorbox{
       display:flex; gap:10px; align-items:flex-start;
@@ -130,24 +135,45 @@
       .right.open{ display:block; }
     }
 
+    /* tabs */
+    .tabs{
+      display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.02);
+      padding:6px; border-radius:14px;
+      width: fit-content;
+    }
+    .tab{
+      border:1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      padding:8px 10px;
+      border-radius:12px;
+      font-weight:950;
+      cursor:pointer;
+      display:flex; align-items:center; gap:8px;
+    }
+    .tab.active{
+      color: var(--txt);
+      border-color: rgba(148,163,184,.35);
+      background: rgba(148,163,184,.08);
+    }
+
     /* stat cards */
     .stats{
       display:grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr)); /* ✅ 5개로 확장 */
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap:12px;
       min-height:0;
     }
-    @media (max-width: 980px){
-      .stats{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    }
-    @media (max-width: 640px){
-      .stats{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
+    @media (max-width: 980px){ .stats{ grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 640px){ .stats{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
     .card{
       border:1px solid var(--line); background:var(--panel); border-radius:var(--radius);
       padding:12px; cursor:pointer; min-height:80px;
       transition: transform .05s ease, background .15s ease;
+      user-select:none;
     }
     .card:active{ transform: translateY(1px); }
     .card.active{ outline:1px solid rgba(148,163,184,.5); background: rgba(148,163,184,.08); }
@@ -160,8 +186,9 @@
       border:1px solid var(--line); background:rgba(255,255,255,.03); color:var(--muted);
     }
     .card .n{ font-size:22px; font-weight:950; margin-top:6px; }
+    .card .s{ margin-top:6px; font-size:12px; color:var(--muted); }
 
-    /* table panel */
+    /* panel + table */
     .panel{
       border:1px solid var(--line); background:var(--panel); border-radius:var(--radius);
       overflow:hidden; display:flex; flex-direction:column;
@@ -172,11 +199,15 @@
       padding:12px 14px; border-bottom:1px solid var(--line);
       display:flex; align-items:center; justify-content:space-between; gap:10px;
       background: rgba(255,255,255,.02);
+      flex-wrap:wrap;
     }
     .panelHead h2{ margin:0; font-size:14px; }
     .panelHead .count{
       font-size:12px; color:var(--muted);
       padding:3px 10px; border-radius:999px; border:1px solid var(--line); white-space:nowrap;
+    }
+    .panelHead .controls{
+      display:flex; gap:8px; align-items:center; flex-wrap:wrap;
     }
 
     .tableScroll{
@@ -212,12 +243,7 @@
     .muted{ color:var(--muted); }
     .numRight{ text-align:right; }
     .center{ text-align:center; }
-
-    td.nameCell{
-      max-width: 44vw;
-      overflow:hidden;
-      text-overflow: ellipsis;
-    }
+    td.nameCell{ max-width: 44vw; overflow:hidden; text-overflow: ellipsis; }
 
     .selectDot{
       width:18px; height:18px;
@@ -225,16 +251,31 @@
       display:inline-block; background:transparent; vertical-align:middle;
     }
     .selectDot.on{ background: var(--yellow); border-color: var(--yellow); }
-    .selectHit{
-      display:inline-flex; align-items:center; justify-content:center;
-      width:var(--tap); height:var(--tap); border-radius:12px;
-    }
+    .selectHit{ display:inline-flex; align-items:center; justify-content:center; width:var(--tap); height:var(--tap); border-radius:12px; }
 
     .sigWrap{ display:flex; gap:6px; justify-content:center; flex-wrap:wrap; }
     .sig{ font-size:10px; padding:2px 8px; border-radius:999px; border:1px solid; font-weight:900; line-height:1.4; }
     .sig.red{ color:#fecaca; background:rgba(239,68,68,.15); border-color:rgba(239,68,68,.30); }
     .sig.yellow{ color:#fde68a; background:rgba(234,179,8,.15); border-color:rgba(234,179,8,.30); }
     .sig.green{ color:#bbf7d0; background:rgba(34,197,94,.15); border-color:rgba(34,197,94,.30); }
+    .sig.blue{ color:#bfdbfe; background:rgba(96,165,250,.15); border-color:rgba(96,165,250,.30); }
+
+    /* performance chips */
+    .chip{
+      display:inline-flex; align-items:center; gap:6px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      padding:8px 10px;
+      border-radius:12px;
+      font-size:12px;
+      color: var(--muted);
+      white-space:nowrap;
+    }
+    .chip b{ color: var(--txt); }
+    .kpiRow{
+      display:flex; gap:10px; flex-wrap:wrap;
+      padding:0 2px;
+    }
 
     /* right detail */
     .detailTop{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
@@ -288,7 +329,7 @@
         scroll-snap-type: x proximity;
       }
       .card{
-        flex: 0 0 240px;  /* 카드 너비 */
+        flex: 0 0 240px;
         min-height: 64px;
         padding:10px;
         scroll-snap-align: start;
@@ -337,9 +378,21 @@
       <input id="urlPULLBACK" type="text">
       <label><b style="color:#fecaca;">BREAKOUT</b></label>
       <input id="urlBREAKOUT" type="text">
+      <label><b style="color:#bfdbfe;">STORAGE</b></label>
+      <input id="urlSTORAGE" type="text">
     </div>
 
-    <div class="row" style="justify-content:flex-end;">
+    <div class="row" style="justify-content:space-between;">
+      <div class="chip">
+        성과 탭 기간
+        <b>
+          <select id="perfWindowSel" style="width:auto; margin-left:8px;">
+            <option value="5">최근 5거래일</option>
+            <option value="10" selected>최근 10거래일</option>
+            <option value="20">최근 20거래일</option>
+          </select>
+        </b>
+      </div>
       <button class="btn primary" id="saveAndRefreshBtn">URL 저장 및 새로고침</button>
     </div>
 
@@ -357,60 +410,153 @@
 
 <div class="wrap">
   <div class="left" id="leftPane">
-    <div class="stats">
-      <div class="card active" data-filter="ALL">
-        <div class="t"><span>전체 포착</span><span class="badgeIcon">🔎</span></div>
-        <div class="n" id="statTotal">-</div>
+
+    <!-- Tabs -->
+    <div class="row" style="justify-content:space-between;">
+      <div class="tabs">
+        <button class="tab active" id="tabScreener">🔎 포착</button>
+        <button class="tab" id="tabPerformance">📊 성과</button>
+      </div>
+      <div class="kpiRow" id="perfKpis" style="display:none;"></div>
+    </div>
+
+    <!-- ============ SCREENER VIEW ============ -->
+    <div id="viewScreener">
+      <div class="stats">
+        <div class="card active" data-filter="ALL">
+          <div class="t"><span>전체 포착</span><span class="badgeIcon">🔎</span></div>
+          <div class="n" id="statTotal">-</div>
+        </div>
+
+        <div class="card" data-filter="TREND">
+          <div class="t"><span>추세 추종</span><span class="badgeIcon" style="border-color:rgba(34,197,94,.35); color:#bbf7d0;">📈</span></div>
+          <div class="n" id="statTrend">-</div>
+        </div>
+
+        <div class="card" data-filter="PULLBACK">
+          <div class="t"><span>눌림목</span><span class="badgeIcon" style="border-color:rgba(234,179,8,.35); color:#fde68a;">🟡</span></div>
+          <div class="n" id="statPullback">-</div>
+        </div>
+
+        <div class="card" data-filter="BREAKOUT">
+          <div class="t"><span>박스권 돌파</span><span class="badgeIcon" style="border-color:rgba(239,68,68,.35); color:#fecaca;">🚀</span></div>
+          <div class="n" id="statBreakout">-</div>
+        </div>
+
+        <div class="card" data-filter="FAV">
+          <div class="t"><span>찜 목록</span><span class="badgeIcon" style="border-color:rgba(234,179,8,.35); color:#fde68a;">⭐</span></div>
+          <div class="n" id="statFav">0</div>
+        </div>
       </div>
 
-      <div class="card" data-filter="TREND">
-        <div class="t"><span>추세 추종</span><span class="badgeIcon" style="border-color:rgba(34,197,94,.35); color:#bbf7d0;">📈</span></div>
-        <div class="n" id="statTrend">-</div>
-      </div>
+      <div class="panel">
+        <div class="panelHead">
+          <h2>검출 종목 리스트 (<span id="filterLabel">ALL</span>)</h2>
+          <div class="count"><span id="rowCount">0</span>건</div>
+        </div>
 
-      <div class="card" data-filter="PULLBACK">
-        <div class="t"><span>눌림목</span><span class="badgeIcon" style="border-color:rgba(234,179,8,.35); color:#fde68a;">🟡</span></div>
-        <div class="n" id="statPullback">-</div>
-      </div>
-
-      <div class="card" data-filter="BREAKOUT">
-        <div class="t"><span>박스권 돌파</span><span class="badgeIcon" style="border-color:rgba(239,68,68,.35); color:#fecaca;">🚀</span></div>
-        <div class="n" id="statBreakout">-</div>
-      </div>
-
-      <!-- ✅ NEW: 찜 목록 -->
-      <div class="card" data-filter="FAV">
-        <div class="t"><span>찜 목록</span><span class="badgeIcon" style="border-color:rgba(234,179,8,.35); color:#fde68a;">⭐</span></div>
-        <div class="n" id="statFav">0</div>
+        <div class="tableScroll">
+          <table>
+            <thead>
+              <tr>
+                <th>종목코드</th>
+                <th>종목명</th>
+                <th class="center">선택</th>
+                <th class="numRight" style="display:none;" id="thClose">현재가</th>
+                <th class="numRight">거래대금</th>
+                <th class="center" style="display:none;" id="thRSI">RSI</th>
+                <th class="center" style="display:none;" id="thStoch">STOCH K</th>
+                <th class="center">Signal</th>
+              </tr>
+            </thead>
+            <tbody id="tbody">
+              <tr><td colspan="8" class="center muted" style="padding:28px;">데이터 로딩 중...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <div class="panel">
-      <div class="panelHead">
-        <h2>검출 종목 리스트 (<span id="filterLabel">ALL</span>)</h2>
-        <div class="count"><span id="rowCount">0</span>건</div>
+    <!-- ============ PERFORMANCE VIEW ============ -->
+    <div id="viewPerformance" style="display:none;">
+      <div class="stats" id="perfCards">
+        <div class="card active" data-perf="SCOREBOARD">
+          <div class="t"><span>신뢰도 보드</span><span class="badgeIcon" style="border-color:rgba(96,165,250,.35); color:#bfdbfe;">🧠</span></div>
+          <div class="n" id="perfCardTitle">Score</div>
+          <div class="s muted" id="perfCardSub">최근 N거래일 기준</div>
+        </div>
+        <div class="card" data-perf="TOP">
+          <div class="t"><span>TOP 성과</span><span class="badgeIcon" style="border-color:rgba(34,197,94,.35); color:#bbf7d0;">🏆</span></div>
+          <div class="n">Top</div>
+          <div class="s muted">Return / Dn 기준</div>
+        </div>
+        <div class="card" data-perf="BOTTOM">
+          <div class="t"><span>Worst 성과</span><span class="badgeIcon" style="border-color:rgba(239,68,68,.35); color:#fecaca;">🧯</span></div>
+          <div class="n">Worst</div>
+          <div class="s muted">리스크 확인</div>
+        </div>
+        <div class="card" data-perf="HITS">
+          <div class="t"><span>종목 히스토리</span><span class="badgeIcon" style="border-color:rgba(234,179,8,.35); color:#fde68a;">🗂️</span></div>
+          <div class="n">History</div>
+          <div class="s muted">중복포착 확인</div>
+        </div>
+        <div class="card" data-perf="INFO">
+          <div class="t"><span>설명</span><span class="badgeIcon">ℹ️</span></div>
+          <div class="n">How</div>
+          <div class="s muted">점수 산식</div>
+        </div>
       </div>
 
-      <div class="tableScroll">
-        <table>
-          <thead>
-            <tr>
-              <th>종목코드</th>
-              <th>종목명</th>
-              <th class="center">선택</th>
-              <th class="numRight" style="display:none;" id="thClose">현재가</th>
-              <th class="numRight">거래대금</th>
-              <th class="center" style="display:none;" id="thRSI">RSI</th>
-              <th class="center" style="display:none;" id="thStoch">STOCH K</th>
-              <th class="center">Signal</th>
-            </tr>
-          </thead>
-          <tbody id="tbody">
-            <tr><td colspan="8" class="center muted" style="padding:28px;">데이터 로딩 중...</td></tr>
-          </tbody>
-        </table>
+      <div class="panel" style="margin-top:14px;">
+        <div class="panelHead">
+          <h2 id="perfTitle">신호 신뢰도 보드</h2>
+          <div class="controls">
+            <span class="chip">기간 <b id="perfWindowTxt">10</b>거래일</span>
+            <span class="chip">정렬
+              <b>
+                <select id="perfSortSel" style="width:auto; margin-left:8px;">
+                  <option value="SCORE" selected>Score</option>
+                  <option value="WIN">승률</option>
+                  <option value="N">표본수</option>
+                  <option value="D1">D1</option>
+                  <option value="D3">D3</option>
+                  <option value="D5">D5</option>
+                  <option value="D7">D7</option>
+                  <option value="D9">D9</option>
+                  <option value="RET">Return</option>
+                </select>
+              </b>
+            </span>
+
+            <span class="chip">Signal_Type
+              <b>
+                <select id="perfTypeSel" style="width:auto; margin-left:8px;">
+                  <option value="ALL" selected>전체</option>
+                  <option value="Trend">Trend</option>
+                  <option value="Pullback">Pullback</option>
+                  <option value="Breakout">Breakout</option>
+                  <option value="Trend+Pullback">Trend+Pullback</option>
+                  <option value="Trend+Breakout">Trend+Breakout</option>
+                  <option value="Pullback+Breakout">Pullback+Breakout</option>
+                  <option value="Trend+Pullback+Breakout">Trend+Pullback+Breakout</option>
+                </select>
+              </b>
+            </span>
+          </div>
+          <div class="count"><span id="perfRowCount">0</span>건</div>
+        </div>
+
+        <div class="tableScroll">
+          <table>
+            <thead id="perfThead"></thead>
+            <tbody id="perfTbody">
+              <tr><td class="center muted" style="padding:28px;">Storage 데이터 로딩 대기중...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
+
   </div>
 
   <aside class="right" id="rightPane">
@@ -444,7 +590,7 @@
       </div>
     </div>
 
-    <div class="analysis">
+    <div class="analysis" id="detailAnalysisBox">
       <h3>⚠️ 포착 신호 분석</h3>
       <ul id="detailSignals"></ul>
       <div class="foot" id="detailFoot">-</div>
@@ -459,28 +605,43 @@
         allowfullscreen
       ></iframe>
     </div>
+
+    <div class="analysis" id="perfDetailBox" style="display:none; margin-top:12px;">
+      <h3>📌 성과 히스토리 (최근 N거래일)</h3>
+      <div id="perfDetailBody" class="muted" style="font-size:13px;"></div>
+    </div>
   </aside>
 </div>
 
 <script>
 /** =========================
- *  CONFIG (신규 URL)
+ *  CONFIG
  *  ========================= */
 const initialUrls = {
   ALL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=0&single=true&output=csv",
   TREND: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=1981708246&single=true&output=csv",
   PULLBACK: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=852505203&single=true&output=csv",
-  BREAKOUT: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=258627301&single=true&output=csv"
+  BREAKOUT: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=258627301&single=true&output=csv",
+  STORAGE: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=2034892211&single=true&output=csv"
 };
-const LS_KEY = "quant_screener_urls_v3";
+
+const LS_KEY = "quant_screener_urls_v4";
+const FAV_KEY = "quant_screener_favs_v1";
+const PERF_KEY = "quant_screener_perf_v1";
+
 let sheetUrls = loadUrls();
+let perfWindow = loadPerfWindow(); // 5/10/20
+let perfMode = "SCOREBOARD"; // SCOREBOARD/TOP/BOTTOM/HITS/INFO
 
 let data = [];
 let filterType = "ALL";
 let detailStock = null;
 
-// ✅ 찜 목록 저장(로컬 유지)
-const FAV_KEY = "quant_screener_favs_v1";
+let storageRows = [];         // raw storage rows
+let storageFiltered = [];     // filtered by last N trading days
+let perfSelectedCode = null;  // for history
+
+// 찜
 let selectedCodes = loadFavs();
 
 const $ = (id) => document.getElementById(id);
@@ -489,6 +650,13 @@ const statusPill = $("statusPill");
 const lastUpdatedPill = $("lastUpdatedPill");
 const tbody = $("tbody");
 const rightPane = $("rightPane");
+
+// Views
+const viewScreener = $("viewScreener");
+const viewPerformance = $("viewPerformance");
+const perfKpis = $("perfKpis");
+const perfTbody = $("perfTbody");
+const perfThead = $("perfThead");
 
 function setStatus(type, msg){
   statusPill.classList.remove("ok","warn","err");
@@ -503,7 +671,14 @@ function hideError(){
   $("errorBox").style.display = "none";
   $("errorMsg").textContent = "";
 }
+
 function fmt(n){ return new Intl.NumberFormat("ko-KR").format(n); }
+function fmtPct(x){
+  const v = Number(x);
+  if(!Number.isFinite(v)) return "-";
+  const sign = v > 0 ? "+" : "";
+  return sign + (v*100).toFixed(2) + "%";
+}
 function toNum(v){
   if(v === null || v === undefined) return 0;
   const s = String(v).replaceAll(",","").trim();
@@ -522,6 +697,21 @@ function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, s => ({
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
   }[s]));
+}
+
+function parseDateStr(s){
+  const t = String(s ?? "").trim();
+  // expect YYYY-MM-DD
+  const m = t.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m) return null;
+  const d = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
+  return isNaN(d.getTime()) ? null : d;
+}
+function ymd(d){
+  const yy = d.getFullYear();
+  const mm = String(d.getMonth()+1).padStart(2,"0");
+  const dd = String(d.getDate()).padStart(2,"0");
+  return `${yy}-${mm}-${dd}`;
 }
 
 /** CSV robust parser */
@@ -557,6 +747,9 @@ function toBool(v){
   return (s === "true" || s === "1" || s === "y" || s === "yes" || s === "t");
 }
 
+/* =========================
+   Screener parsing
+   ========================= */
 function parseAllSheet(text){
   const rows = parseCSVRows(text).filter(r => r.some(x => String(x).trim() !== ""));
   if(rows.length < 2) return [];
@@ -611,7 +804,61 @@ function parseSignalSheetToSet(text){
   return set;
 }
 
-/** FAV persistence */
+/* =========================
+   Storage parsing
+   ========================= */
+function parseStorageSheet(text){
+  const rows = parseCSVRows(text).filter(r => r.some(x => String(x).trim() !== ""));
+  if(rows.length < 2) return [];
+
+  const headers = rows[0].map(h => String(h).trim());
+  const idx = (name) => headers.findIndex(h => h === name);
+
+  const iCode = idx("Code");
+  if(iCode < 0) return [];
+
+  const iName = idx("Name");
+  const iMarket = idx("Market");
+  const iDetect = idx("DetectDate");
+  const iType = idx("Signal_Type");
+  const iEntry = idx("EntryPrice");
+  const iCloseToday = idx("Close_Today");
+  const iReturn = idx("Return");
+  const iD1 = idx("D1"), iD3 = idx("D3"), iD5 = idx("D5"), iD7 = idx("D7"), iD9 = idx("D9");
+  const iPriceType = idx("Price_Type"); // 있으면 읽고, 없어도 됨
+
+  const out = [];
+  for(const r of rows.slice(1)){
+    const code = pad6(r[iCode]);
+    if(!/^\d{6}$/.test(code)) continue;
+
+    const detect = iDetect >= 0 ? String(r[iDetect] ?? "").trim() : "";
+    const dt = parseDateStr(detect);
+    if(!dt) continue;
+
+    out.push({
+      Code: code,
+      Name: iName>=0 ? String(r[iName] ?? "").trim() : "",
+      Market: iMarket>=0 ? String(r[iMarket] ?? "").trim() : "",
+      DetectDate: ymd(dt),
+      Signal_Type: iType>=0 ? String(r[iType] ?? "").trim() : "",
+      EntryPrice: iEntry>=0 ? toNum(r[iEntry]) : 0,
+      Close_Today: iCloseToday>=0 ? toNum(r[iCloseToday]) : 0,
+      Return: iReturn>=0 ? toNum(r[iReturn]) : NaN,
+      D1: iD1>=0 ? toNum(r[iD1]) : NaN,
+      D3: iD3>=0 ? toNum(r[iD3]) : NaN,
+      D5: iD5>=0 ? toNum(r[iD5]) : NaN,
+      D7: iD7>=0 ? toNum(r[iD7]) : NaN,
+      D9: iD9>=0 ? toNum(r[iD9]) : NaN,
+      Price_Type: iPriceType>=0 ? String(r[iPriceType] ?? "").trim() : ""
+    });
+  }
+  return out;
+}
+
+/* =========================
+   FAV persistence
+   ========================= */
 function loadFavs(){
   try{
     const raw = localStorage.getItem(FAV_KEY);
@@ -627,84 +874,50 @@ function saveFavs(){
   $("statFav").textContent = String(selectedCodes.size);
 }
 
+/* =========================
+   URLs + perf window persistence
+   ========================= */
+function loadUrls(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return {...initialUrls};
+    const obj = JSON.parse(raw);
+    return { ...initialUrls, ...obj };
+  }catch{
+    return {...initialUrls};
+  }
+}
+function saveUrls(){
+  localStorage.setItem(LS_KEY, JSON.stringify(sheetUrls));
+}
+
+function loadPerfWindow(){
+  try{
+    const raw = localStorage.getItem(PERF_KEY);
+    if(!raw) return 10;
+    const obj = JSON.parse(raw);
+    const w = Number(obj?.window);
+    return [5,10,20].includes(w) ? w : 10;
+  }catch{
+    return 10;
+  }
+}
+function savePerfWindow(){
+  localStorage.setItem(PERF_KEY, JSON.stringify({ window: perfWindow }));
+}
+
+/* =========================
+   HTTP fetch
+   ========================= */
 async function fetchText(url){
   const res = await fetch(bust(url), { cache:"no-store" });
   if(!res.ok) throw new Error(`HTTP ${res.status}`);
   return await res.text();
 }
 
-async function fetchData(){
-  if(!sheetUrls.ALL){
-    openSettings(true);
-    showError("ALL 시트 URL을 먼저 입력해줘.");
-    return;
-  }
-
-  hideError();
-  setStatus("warn","로딩중...");
-  $("refreshBtn").disabled = true;
-  $("refreshIcon").innerHTML = '<span class="spin"></span>';
-
-  detailStock = null;
-  closeDetail();
-
-  try{
-    const [allText, trendText, pullText, breakText] = await Promise.all([
-      fetchText(sheetUrls.ALL),
-      sheetUrls.TREND ? fetchText(sheetUrls.TREND).catch(()=>null) : Promise.resolve(null),
-      sheetUrls.PULLBACK ? fetchText(sheetUrls.PULLBACK).catch(()=>null) : Promise.resolve(null),
-      sheetUrls.BREAKOUT ? fetchText(sheetUrls.BREAKOUT).catch(()=>null) : Promise.resolve(null)
-    ]);
-
-    const allData = parseAllSheet(allText);
-    if(!allData.length) throw new Error("ALL 시트 파싱 실패. 헤더/데이터 형식을 확인해줘.");
-
-    const trendSet = trendText ? parseSignalSheetToSet(trendText) : null;
-    const pullSet  = pullText  ? parseSignalSheetToSet(pullText)  : null;
-    const breakSet = breakText ? parseSignalSheetToSet(breakText) : null;
-
-    data = allData.map(s => {
-      if(trendSet) s.Trend_Signal = trendSet.has(s.Code) || s.Trend_Signal;
-      if(pullSet)  s.Pullback_Signal = pullSet.has(s.Code) || s.Pullback_Signal;
-      if(breakSet) s.Breakout_Signal = breakSet.has(s.Code) || s.Breakout_Signal;
-      return s;
-    });
-
-    data.sort((a,b) => {
-      if(b.Breakout_Signal !== a.Breakout_Signal) return b.Breakout_Signal ? 1 : -1;
-      if(b.Pullback_Signal !== a.Pullback_Signal) return b.Pullback_Signal ? 1 : -1;
-      if(b.Trend_Signal !== a.Trend_Signal) return b.Trend_Signal ? 1 : -1;
-      return toNum(b.Turnover) - toNum(a.Turnover);
-    });
-
-    updateStats();
-    renderTable();
-
-    lastUpdatedPill.textContent = "갱신: " + new Date().toLocaleTimeString("ko-KR");
-    setStatus("ok","최신 반영");
-    openSettings(false);
-
-  }catch(e){
-    data = [];
-    updateStats();
-    renderEmpty("데이터 로딩 실패: " + (e.message || String(e)));
-    setStatus("err","실패");
-    showError(e.message || String(e));
-  }finally{
-    $("refreshBtn").disabled = false;
-    $("refreshIcon").textContent = "↻";
-    saveFavs(); // statFav 갱신 포함
-  }
-}
-
-function getFiltered(){
-  if(filterType === "TREND") return data.filter(x => x.Trend_Signal);
-  if(filterType === "PULLBACK") return data.filter(x => x.Pullback_Signal);
-  if(filterType === "BREAKOUT") return data.filter(x => x.Breakout_Signal);
-  if(filterType === "FAV") return data.filter(x => selectedCodes.has(x.Code));
-  return data;
-}
-
+/* =========================
+   Screener rendering
+   ========================= */
 function updateStats(){
   $("statTotal").textContent = fmt(data.length);
   $("statTrend").textContent = fmt(data.filter(x=>x.Trend_Signal).length);
@@ -712,12 +925,10 @@ function updateStats(){
   $("statBreakout").textContent = fmt(data.filter(x=>x.Breakout_Signal).length);
   $("statFav").textContent = String(selectedCodes.size);
 }
-
 function renderEmpty(msg){
   tbody.innerHTML = `<tr><td colspan="8" class="center muted" style="padding:28px;">${escapeHtml(msg)}</td></tr>`;
   $("rowCount").textContent = "0";
 }
-
 function rsiColor(v){
   const x = Number(v)||0;
   if(x <= 30) return "#60a5fa";
@@ -730,7 +941,13 @@ function stochColor(v){
   if(x >= 80) return "#fb7185";
   return "#94a3b8";
 }
-
+function getFiltered(){
+  if(filterType === "TREND") return data.filter(x => x.Trend_Signal);
+  if(filterType === "PULLBACK") return data.filter(x => x.Pullback_Signal);
+  if(filterType === "BREAKOUT") return data.filter(x => x.Breakout_Signal);
+  if(filterType === "FAV") return data.filter(x => selectedCodes.has(x.Code));
+  return data;
+}
 function renderTable(){
   const rows = getFiltered();
   $("filterLabel").textContent = filterType;
@@ -740,7 +957,6 @@ function renderTable(){
     renderEmpty("찜한 종목이 없어. 리스트에서 노란 점으로 찍어줘 ⭐");
     return;
   }
-
   if(!rows.length){
     renderEmpty("조건에 맞는 종목이 없어.");
     return;
@@ -796,6 +1012,8 @@ function renderTable(){
 function openDetail(stock){
   detailStock = stock;
 
+  $("perfDetailBox").style.display = "none"; // screener detail
+  $("detailAnalysisBox").style.display = "block";
   $("detailMeta").textContent = `${stock.Market || "-"} | ${stock.Code}`;
   $("detailName").textContent = stock.Name || "-";
   $("detailClose").textContent = fmt(Math.round(toNum(stock.Close)));
@@ -829,6 +1047,7 @@ function openDetail(stock){
 function closeDetail(){
   rightPane.classList.remove("open");
   detailStock = null;
+  perfSelectedCode = null;
 }
 function toggleDetailByCode(code){
   const stock = data.find(x => x.Code === code);
@@ -836,7 +1055,6 @@ function toggleDetailByCode(code){
   if(detailStock && detailStock.Code === code) closeDetail();
   else openDetail(stock);
 }
-
 function toggleSelect(code){
   if(selectedCodes.has(code)) selectedCodes.delete(code);
   else selectedCodes.add(code);
@@ -844,39 +1062,624 @@ function toggleSelect(code){
   renderTable();
 }
 
-function loadUrls(){
-  try{
-    const raw = localStorage.getItem(LS_KEY);
-    if(!raw) return {...initialUrls};
-    const obj = JSON.parse(raw);
-    return { ...initialUrls, ...obj };
-  }catch{
-    return {...initialUrls};
+/* =========================
+   Performance computations
+   ========================= */
+function lastNTradingDaysFromStorage(rows, n){
+  const dates = Array.from(new Set(rows.map(r => r.DetectDate))).filter(Boolean);
+  dates.sort((a,b)=> (a<b?1:-1)); // desc
+  return dates.slice(0, n);
+}
+function filterStorageWindow(){
+  if(!storageRows.length){
+    storageFiltered = [];
+    return;
+  }
+  const dates = lastNTradingDaysFromStorage(storageRows, perfWindow);
+  const dateSet = new Set(dates);
+  storageFiltered = storageRows.filter(r => dateSet.has(r.DetectDate));
+}
+
+function median(arr){
+  const a = arr.filter(x=>Number.isFinite(x)).slice().sort((x,y)=>x-y);
+  if(!a.length) return NaN;
+  const mid = Math.floor(a.length/2);
+  return a.length%2 ? a[mid] : (a[mid-1]+a[mid])/2;
+}
+function avg(arr){
+  const a = arr.filter(x=>Number.isFinite(x));
+  if(!a.length) return NaN;
+  return a.reduce((s,v)=>s+v,0)/a.length;
+}
+function winRate(arr){
+  const a = arr.filter(x=>Number.isFinite(x));
+  if(!a.length) return NaN;
+  const w = a.filter(x=>x>0).length;
+  return w/a.length;
+}
+function scoreForGroup(rows){
+  // Score = 0.40*Avg(D1) + 0.30*Avg(D3) + 0.20*Avg(D5) + 0.10*Avg(D9)
+  const a1 = avg(rows.map(r=>r.D1));
+  const a3 = avg(rows.map(r=>r.D3));
+  const a5 = avg(rows.map(r=>r.D5));
+  const a9 = avg(rows.map(r=>r.D9));
+  const base = 0.40*(Number.isFinite(a1)?a1:0) + 0.30*(Number.isFinite(a3)?a3:0) + 0.20*(Number.isFinite(a5)?a5:0) + 0.10*(Number.isFinite(a9)?a9:0);
+  const n = rows.length;
+  const penalty = n < 5 ? 0.7 : (n < 10 ? 0.85 : 1.0);
+  return base * penalty;
+}
+
+function groupBySignalType(rows){
+  const groups = new Map();
+  for(const r of rows){
+    const key = (r.Signal_Type || "").trim() || "UNKNOWN";
+    if(!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(r);
+  }
+  return groups;
+}
+
+function perfBuildScoreboard(){
+  const groups = groupBySignalType(storageFiltered);
+  const out = [];
+  for(const [type, rows] of groups.entries()){
+    const retArr = rows.map(r=>r.Return);
+    const row = {
+      Signal_Type: type,
+      N: rows.length,
+      WinRate: winRate(retArr),
+      AvgReturn: avg(retArr),
+      MedReturn: median(retArr),
+      AvgD1: avg(rows.map(r=>r.D1)),
+      AvgD3: avg(rows.map(r=>r.D3)),
+      AvgD5: avg(rows.map(r=>r.D5)),
+      AvgD7: avg(rows.map(r=>r.D7)),
+      AvgD9: avg(rows.map(r=>r.D9)),
+      Score: scoreForGroup(rows),
+    };
+    out.push(row);
+  }
+
+  // sort
+  const sortKey = $("perfSortSel")?.value || "SCORE";
+  out.sort((a,b)=>{
+    const dir = -1; // desc
+    const pick = (o)=>{
+      if(sortKey==="SCORE") return o.Score;
+      if(sortKey==="WIN") return o.WinRate;
+      if(sortKey==="N") return o.N;
+      if(sortKey==="D1") return o.AvgD1;
+      if(sortKey==="D3") return o.AvgD3;
+      if(sortKey==="D5") return o.AvgD5;
+      if(sortKey==="D7") return o.AvgD7;
+      if(sortKey==="D9") return o.AvgD9;
+      if(sortKey==="RET") return o.AvgReturn;
+      return o.Score;
+    }
+    const x = pick(a), y = pick(b);
+    return (y - x) * dir;
+  });
+  return out;
+}
+
+function perfApplyTypeFilter(rows){
+  const sel = $("perfTypeSel")?.value || "ALL";
+  if(sel === "ALL") return rows;
+
+  // Scoreboard rows use Signal_Type; others also.
+  return rows.filter(r => (r.Signal_Type || "") === sel);
+}
+
+function perfBuildTopBottom(isTop){
+  // build row list at "signal hit" level, optionally filter by Signal_Type
+  let rows = storageFiltered.slice();
+
+  const sel = $("perfTypeSel")?.value || "ALL";
+  if(sel !== "ALL"){
+    rows = rows.filter(r => (r.Signal_Type||"") === sel);
+  }
+
+  const sortKey = $("perfSortSel")?.value || "RET";
+  const keyFn = (r)=>{
+    if(sortKey==="D1") return r.D1;
+    if(sortKey==="D3") return r.D3;
+    if(sortKey==="D5") return r.D5;
+    if(sortKey==="D7") return r.D7;
+    if(sortKey==="D9") return r.D9;
+    return r.Return;
+  };
+
+  rows.sort((a,b)=>{
+    const x = keyFn(a), y = keyFn(b);
+    const xx = Number.isFinite(x) ? x : -999;
+    const yy = Number.isFinite(y) ? y : -999;
+    return isTop ? (yy-xx) : (xx-yy);
+  });
+
+  return rows.slice(0, 60);
+}
+
+function perfBuildHits(){
+  // group by Code: count hits and show last signal types within window
+  let rows = storageFiltered.slice();
+  const sel = $("perfTypeSel")?.value || "ALL";
+  if(sel !== "ALL"){
+    rows = rows.filter(r => (r.Signal_Type||"") === sel);
+  }
+
+  const by = new Map();
+  for(const r of rows){
+    if(!by.has(r.Code)) by.set(r.Code, []);
+    by.get(r.Code).push(r);
+  }
+
+  const out = [];
+  for(const [code, list] of by.entries()){
+    list.sort((a,b)=> (a.DetectDate<b.DetectDate?1:-1));
+    const name = list[0]?.Name || "";
+    const market = list[0]?.Market || "";
+    const types = Array.from(new Set(list.map(x=>x.Signal_Type).filter(Boolean))).slice(0,6);
+    const lastDate = list[0]?.DetectDate || "";
+    const best = Math.max(...list.map(x=>Number.isFinite(x.Return)?x.Return:-999));
+    const worst = Math.min(...list.map(x=>Number.isFinite(x.Return)?x.Return:999));
+    out.push({
+      Code: code,
+      Name: name,
+      Market: market,
+      Hits: list.length,
+      LastDetectDate: lastDate,
+      Types: types,
+      BestReturn: (best===-999?NaN:best),
+      WorstReturn: (worst===999?NaN:worst)
+    });
+  }
+
+  // sort by hits desc then last date desc
+  out.sort((a,b)=>{
+    if(b.Hits !== a.Hits) return b.Hits - a.Hits;
+    return (a.LastDetectDate < b.LastDetectDate) ? 1 : -1;
+  });
+  return out;
+}
+
+function perfUpdateKpis(){
+  if(!storageFiltered.length){
+    perfKpis.innerHTML = `<span class="chip">Storage 데이터 없음</span>`;
+    return;
+  }
+  const rets = storageFiltered.map(r=>r.Return).filter(x=>Number.isFinite(x));
+  const avgR = avg(rets);
+  const medR = median(rets);
+  const wr = winRate(rets);
+  const n = storageFiltered.length;
+
+  // best/worst item
+  let best = null, worst = null;
+  for(const r of storageFiltered){
+    if(!Number.isFinite(r.Return)) continue;
+    if(!best || r.Return > best.Return) best = r;
+    if(!worst || r.Return < worst.Return) worst = r;
+  }
+
+  perfKpis.innerHTML = `
+    <span class="chip">최근 <b>${perfWindow}</b>거래일</span>
+    <span class="chip">표본 <b>${fmt(n)}</b></span>
+    <span class="chip">평균 <b style="color:${avgR>=0?'#a7f3d0':'#fecaca'}">${fmtPct(avgR)}</b></span>
+    <span class="chip">중앙값 <b style="color:${medR>=0?'#a7f3d0':'#fecaca'}">${fmtPct(medR)}</b></span>
+    <span class="chip">승률 <b>${Number.isFinite(wr)?(wr*100).toFixed(1)+'%':'-'}</b></span>
+    <span class="chip">Best <b style="color:#a7f3d0">${best ? (escapeHtml(best.Name||best.Code)+' '+fmtPct(best.Return)) : '-'}</b></span>
+    <span class="chip">Worst <b style="color:#fecaca">${worst ? (escapeHtml(worst.Name||worst.Code)+' '+fmtPct(worst.Return)) : '-'}</b></span>
+  `;
+}
+
+function sigTypeBadge(type){
+  const t = String(type||"").trim();
+  if(!t) return `<span class="sig blue">-</span>`;
+  const parts = t.split("+").filter(Boolean);
+  const cls = parts.length >= 3 ? "red" : (parts.length === 2 ? "yellow" : "green");
+  return `<span class="sig ${cls}">${escapeHtml(t)}</span>`;
+}
+
+function perfRender(){
+  $("perfWindowTxt").textContent = String(perfWindow);
+
+  if(!storageRows.length){
+    $("perfRowCount").textContent = "0";
+    perfThead.innerHTML = `<tr><th>안내</th></tr>`;
+    perfTbody.innerHTML = `<tr><td class="center muted" style="padding:28px;">Storage CSV URL을 확인해줘. (설정 ⚙️ → STORAGE)</td></tr>`;
+    perfUpdateKpis();
+    return;
+  }
+
+  filterStorageWindow();
+  perfUpdateKpis();
+
+  if(!storageFiltered.length){
+    $("perfRowCount").textContent = "0";
+    perfThead.innerHTML = `<tr><th>안내</th></tr>`;
+    perfTbody.innerHTML = `<tr><td class="center muted" style="padding:28px;">최근 ${perfWindow}거래일에 해당하는 Storage 데이터가 없어.</td></tr>`;
+    return;
+  }
+
+  // mode switch
+  if(perfMode === "INFO"){
+    $("perfTitle").textContent = "신뢰도 점수 산식";
+    $("perfRowCount").textContent = "1";
+    perfThead.innerHTML = `<tr><th>항목</th><th>내용</th></tr>`;
+    perfTbody.innerHTML = `
+      <tr>
+        <td class="mono">Score</td>
+        <td>
+          0.40·Avg(D1) + 0.30·Avg(D3) + 0.20·Avg(D5) + 0.10·Avg(D9)<br/>
+          <span class="muted">표본 패널티: n&lt;5 → ×0.70, n&lt;10 → ×0.85</span>
+        </td>
+      </tr>
+      <tr>
+        <td class="mono">해석</td>
+        <td>
+          <b>Score</b>가 높을수록 최근 성능이 좋았던 신호 조합.<br/>
+          <b>승률</b>(Return&gt;0)과 <b>표본수</b>(N)를 같이 보고 판단하면 안정적이야.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  if(perfMode === "SCOREBOARD"){
+    $("perfTitle").textContent = "신호 신뢰도 보드";
+    let rows = perfBuildScoreboard();
+    rows = perfApplyTypeFilter(rows);
+
+    $("perfRowCount").textContent = String(rows.length);
+
+    perfThead.innerHTML = `
+      <tr>
+        <th>Signal_Type</th>
+        <th class="numRight">N</th>
+        <th class="numRight">승률</th>
+        <th class="numRight">Score</th>
+        <th class="numRight">Avg Ret</th>
+        <th class="numRight">Med Ret</th>
+        <th class="numRight">D1</th>
+        <th class="numRight">D3</th>
+        <th class="numRight">D5</th>
+        <th class="numRight">D7</th>
+        <th class="numRight">D9</th>
+      </tr>
+    `;
+
+    perfTbody.innerHTML = rows.map(r=>{
+      const cScore = (r.Score>=0) ? "#a7f3d0" : "#fecaca";
+      const cRet = (r.AvgReturn>=0) ? "#a7f3d0" : "#fecaca";
+      return `
+        <tr>
+          <td>${sigTypeBadge(r.Signal_Type)}</td>
+          <td class="numRight mono">${fmt(r.N)}</td>
+          <td class="numRight mono">${Number.isFinite(r.WinRate) ? (r.WinRate*100).toFixed(1)+"%" : "-"}</td>
+          <td class="numRight mono" style="color:${cScore}">${fmtPct(r.Score)}</td>
+          <td class="numRight mono" style="color:${cRet}">${fmtPct(r.AvgReturn)}</td>
+          <td class="numRight mono">${fmtPct(r.MedReturn)}</td>
+          <td class="numRight mono">${fmtPct(r.AvgD1)}</td>
+          <td class="numRight mono">${fmtPct(r.AvgD3)}</td>
+          <td class="numRight mono">${fmtPct(r.AvgD5)}</td>
+          <td class="numRight mono">${fmtPct(r.AvgD7)}</td>
+          <td class="numRight mono">${fmtPct(r.AvgD9)}</td>
+        </tr>
+      `;
+    }).join("");
+    return;
+  }
+
+  if(perfMode === "TOP" || perfMode === "BOTTOM"){
+    const isTop = perfMode === "TOP";
+    $("perfTitle").textContent = isTop ? "TOP 성과 리스트" : "Worst 성과 리스트";
+    const rows = perfBuildTopBottom(isTop);
+    $("perfRowCount").textContent = String(rows.length);
+
+    const sortKey = $("perfSortSel")?.value || "RET";
+    const label = (k)=> k==="RET" ? "Return" : k;
+
+    perfThead.innerHTML = `
+      <tr>
+        <th>DetectDate</th>
+        <th>Code</th>
+        <th>Name</th>
+        <th>Signal_Type</th>
+        <th class="numRight">Entry</th>
+        <th class="numRight">Close</th>
+        <th class="numRight">${label(sortKey)}</th>
+        <th class="numRight">D1</th>
+        <th class="numRight">D3</th>
+        <th class="numRight">D5</th>
+        <th class="numRight">D7</th>
+        <th class="numRight">D9</th>
+      </tr>
+    `;
+
+    perfTbody.innerHTML = rows.map(r=>{
+      const pick = (k)=>{
+        if(k==="D1") return r.D1;
+        if(k==="D3") return r.D3;
+        if(k==="D5") return r.D5;
+        if(k==="D7") return r.D7;
+        if(k==="D9") return r.D9;
+        return r.Return;
+      };
+      const v = pick(sortKey);
+      const col = Number.isFinite(v) ? (v>=0 ? "#a7f3d0" : "#fecaca") : "#94a3b8";
+      return `
+        <tr data-perf-code="${r.Code}">
+          <td class="mono muted">${escapeHtml(r.DetectDate)}</td>
+          <td class="mono" style="color:#bfdbfe;">${escapeHtml(r.Code)}</td>
+          <td class="nameCell">${escapeHtml(r.Name||"")}</td>
+          <td>${sigTypeBadge(r.Signal_Type)}</td>
+          <td class="numRight mono">${fmt(Math.round(r.EntryPrice||0))}</td>
+          <td class="numRight mono">${fmt(Math.round(r.Close_Today||0))}</td>
+          <td class="numRight mono" style="color:${col}; font-weight:950;">${fmtPct(v)}</td>
+          <td class="numRight mono">${fmtPct(r.D1)}</td>
+          <td class="numRight mono">${fmtPct(r.D3)}</td>
+          <td class="numRight mono">${fmtPct(r.D5)}</td>
+          <td class="numRight mono">${fmtPct(r.D7)}</td>
+          <td class="numRight mono">${fmtPct(r.D9)}</td>
+        </tr>
+      `;
+    }).join("");
+    return;
+  }
+
+  if(perfMode === "HITS"){
+    $("perfTitle").textContent = "종목 히스토리(중복 포착)";
+    const rows = perfBuildHits();
+    $("perfRowCount").textContent = String(rows.length);
+
+    perfThead.innerHTML = `
+      <tr>
+        <th>Code</th>
+        <th>Name</th>
+        <th class="numRight">Hits</th>
+        <th>Last</th>
+        <th>Types</th>
+        <th class="numRight">Best Ret</th>
+        <th class="numRight">Worst Ret</th>
+      </tr>
+    `;
+    perfTbody.innerHTML = rows.map(r=>{
+      const bestCol = Number.isFinite(r.BestReturn) ? (r.BestReturn>=0?"#a7f3d0":"#fecaca") : "#94a3b8";
+      const worstCol = Number.isFinite(r.WorstReturn) ? (r.WorstReturn>=0?"#a7f3d0":"#fecaca") : "#94a3b8";
+      const types = (r.Types||[]).map(sigTypeBadge).join(" ");
+      return `
+        <tr data-perf-code="${r.Code}">
+          <td class="mono" style="color:#bfdbfe;">${escapeHtml(r.Code)}</td>
+          <td class="nameCell">${escapeHtml(r.Name||"")}</td>
+          <td class="numRight mono">${fmt(r.Hits)}</td>
+          <td class="mono muted">${escapeHtml(r.LastDetectDate||"-")}</td>
+          <td>${types || "-"}</td>
+          <td class="numRight mono" style="color:${bestCol}; font-weight:950;">${fmtPct(r.BestReturn)}</td>
+          <td class="numRight mono" style="color:${worstCol}; font-weight:950;">${fmtPct(r.WorstReturn)}</td>
+        </tr>
+      `;
+    }).join("");
+    return;
   }
 }
-function saveUrls(){
-  localStorage.setItem(LS_KEY, JSON.stringify(sheetUrls));
+
+function perfShowCodeHistory(code){
+  const c = String(code||"").trim();
+  if(!/^\d{6}$/.test(c)) return;
+
+  perfSelectedCode = c;
+
+  const list = storageFiltered.filter(r => r.Code === c).slice().sort((a,b)=> (a.DetectDate<b.DetectDate?1:-1));
+  if(!list.length){
+    $("perfDetailBox").style.display = "none";
+    return;
+  }
+
+  const name = list[0].Name || c;
+  const lines = list.map(r=>{
+    const retCol = Number.isFinite(r.Return) ? (r.Return>=0 ? "#a7f3d0" : "#fecaca") : "#94a3b8";
+    return `
+      <div style="padding:8px 0; border-bottom:1px solid rgba(34,48,83,.55);">
+        <div class="muted mono">${escapeHtml(r.DetectDate)} · ${sigTypeBadge(r.Signal_Type)}</div>
+        <div style="margin-top:6px;">
+          Return <b style="color:${retCol}">${fmtPct(r.Return)}</b>
+          <span class="muted"> | D1 ${fmtPct(r.D1)} · D3 ${fmtPct(r.D3)} · D5 ${fmtPct(r.D5)} · D7 ${fmtPct(r.D7)} · D9 ${fmtPct(r.D9)}</span>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  $("perfDetailBox").style.display = "block";
+  $("detailAnalysisBox").style.display = "none";
+  $("detailMeta").textContent = `Storage | ${c}`;
+  $("detailName").textContent = name;
+  $("detailClose").textContent = fmt(Math.round(list[0].Close_Today||0));
+  $("detailRSI").textContent = "-";
+  $("detailStoch").textContent = "-";
+  $("detailVol").textContent = "-";
+  $("detailFoot").innerHTML = `최근 ${perfWindow}거래일 포착 히스토리`;
+
+  $("perfDetailBody").innerHTML = lines;
+
+  // chart
+  const frame = document.getElementById("tvFrame");
+  if(frame){
+    frame.src =
+      "https://www.tradingview.com/widgetembed/?" +
+      "symbol=KRX:" + c +
+      "&interval=D" +
+      "&theme=dark" +
+      "&hidesidetoolbar=1" +
+      "&hidetoptoolbar=1";
+  }
+
+  rightPane.classList.add("open");
 }
+
+/* =========================
+   Fetch all
+   ========================= */
+async function fetchData(){
+  if(!sheetUrls.ALL){
+    openSettings(true);
+    showError("ALL 시트 URL을 먼저 입력해줘.");
+    return;
+  }
+
+  hideError();
+  setStatus("warn","로딩중...");
+  $("refreshBtn").disabled = true;
+  $("refreshIcon").innerHTML = '<span class="spin"></span>';
+
+  detailStock = null;
+  closeDetail();
+
+  try{
+    const tasks = [
+      fetchText(sheetUrls.ALL),
+      sheetUrls.TREND ? fetchText(sheetUrls.TREND).catch(()=>null) : Promise.resolve(null),
+      sheetUrls.PULLBACK ? fetchText(sheetUrls.PULLBACK).catch(()=>null) : Promise.resolve(null),
+      sheetUrls.BREAKOUT ? fetchText(sheetUrls.BREAKOUT).catch(()=>null) : Promise.resolve(null),
+      sheetUrls.STORAGE ? fetchText(sheetUrls.STORAGE).catch(()=>null) : Promise.resolve(null),
+    ];
+
+    const [allText, trendText, pullText, breakText, storageText] = await Promise.all(tasks);
+
+    // Screener
+    const allData = parseAllSheet(allText);
+    if(!allData.length) throw new Error("ALL 시트 파싱 실패. 헤더/데이터 형식을 확인해줘.");
+
+    const trendSet = trendText ? parseSignalSheetToSet(trendText) : null;
+    const pullSet  = pullText  ? parseSignalSheetToSet(pullText)  : null;
+    const breakSet = breakText ? parseSignalSheetToSet(breakText) : null;
+
+    data = allData.map(s => {
+      if(trendSet) s.Trend_Signal = trendSet.has(s.Code) || s.Trend_Signal;
+      if(pullSet)  s.Pullback_Signal = pullSet.has(s.Code) || s.Pullback_Signal;
+      if(breakSet) s.Breakout_Signal = breakSet.has(s.Code) || s.Breakout_Signal;
+      return s;
+    });
+
+    data.sort((a,b) => {
+      if(b.Breakout_Signal !== a.Breakout_Signal) return b.Breakout_Signal ? 1 : -1;
+      if(b.Pullback_Signal !== a.Pullback_Signal) return b.Pullback_Signal ? 1 : -1;
+      if(b.Trend_Signal !== a.Trend_Signal) return b.Trend_Signal ? 1 : -1;
+      return toNum(b.Turnover) - toNum(a.Turnover);
+    });
+
+    updateStats();
+    renderTable();
+
+    // Storage
+    if(storageText){
+      storageRows = parseStorageSheet(storageText);
+
+      // normalize + safety
+      storageRows = storageRows.map(r => ({
+        ...r,
+        Code: pad6(r.Code),
+        DetectDate: String(r.DetectDate||"").trim(),
+        Signal_Type: String(r.Signal_Type||"").trim(),
+      })).filter(r => /^\d{6}$/.test(r.Code) && /^\d{4}-\d{2}-\d{2}$/.test(r.DetectDate));
+
+      // sort for stability
+      storageRows.sort((a,b)=>{
+        if(a.DetectDate !== b.DetectDate) return a.DetectDate < b.DetectDate ? 1 : -1;
+        return a.Code < b.Code ? 1 : -1;
+      });
+    } else {
+      storageRows = [];
+    }
+
+    perfRender();
+
+    lastUpdatedPill.textContent = "갱신: " + new Date().toLocaleTimeString("ko-KR");
+    setStatus("ok","최신 반영");
+    openSettings(false);
+
+  }catch(e){
+    data = [];
+    storageRows = [];
+    updateStats();
+    renderEmpty("데이터 로딩 실패: " + (e.message || String(e)));
+    perfRender();
+
+    setStatus("err","실패");
+    showError(e.message || String(e));
+  }finally{
+    $("refreshBtn").disabled = false;
+    $("refreshIcon").textContent = "↻";
+    saveFavs();
+  }
+}
+
+/* =========================
+   Tabs / settings
+   ========================= */
 function openSettings(open){
   settingsPanel.classList.toggle("open", !!open);
 }
 
+function switchTab(which){
+  const isPerf = which === "PERF";
+  $("tabScreener").classList.toggle("active", !isPerf);
+  $("tabPerformance").classList.toggle("active", isPerf);
+
+  viewScreener.style.display = isPerf ? "none" : "block";
+  viewPerformance.style.display = isPerf ? "block" : "none";
+  perfKpis.style.display = isPerf ? "flex" : "none";
+
+  closeDetail();
+  if(isPerf){
+    perfRender();
+  }else{
+    renderTable();
+  }
+}
+
+/* =========================
+   Bind events
+   ========================= */
 function bind(){
+  // settings open/close
   $("settingsBtn").addEventListener("click", () => openSettings(!settingsPanel.classList.contains("open")));
   $("settingsCloseBtn").addEventListener("click", () => openSettings(false));
 
+  // refresh
   $("refreshBtn").addEventListener("click", fetchData);
+
+  // save & refresh
   $("saveAndRefreshBtn").addEventListener("click", () => {
     sheetUrls = {
       ALL: $("urlALL").value.trim(),
       TREND: $("urlTREND").value.trim(),
       PULLBACK: $("urlPULLBACK").value.trim(),
       BREAKOUT: $("urlBREAKOUT").value.trim(),
+      STORAGE: $("urlSTORAGE").value.trim(),
     };
+    const w = Number($("perfWindowSel").value);
+    if([5,10,20].includes(w)) perfWindow = w;
+    savePerfWindow();
+
     saveUrls();
     fetchData();
   });
 
+  // perf window select (in settings)
+  $("perfWindowSel").addEventListener("change", () => {
+    const w = Number($("perfWindowSel").value);
+    if([5,10,20].includes(w)){
+      perfWindow = w;
+      savePerfWindow();
+      perfRender();
+    }
+  });
+
+  // tabs
+  $("tabScreener").addEventListener("click", ()=> switchTab("SCR"));
+  $("tabPerformance").addEventListener("click", ()=> switchTab("PERF"));
+
+  // screener filter cards
   document.querySelectorAll(".card[data-filter]").forEach(el => {
     el.addEventListener("click", () => {
       document.querySelectorAll(".card[data-filter]").forEach(c => c.classList.remove("active"));
@@ -887,6 +1690,22 @@ function bind(){
     });
   });
 
+  // perf cards
+  document.querySelectorAll("#perfCards .card[data-perf]").forEach(el=>{
+    el.addEventListener("click", ()=>{
+      document.querySelectorAll("#perfCards .card[data-perf]").forEach(c=>c.classList.remove("active"));
+      el.classList.add("active");
+      perfMode = el.dataset.perf;
+      closeDetail();
+      perfRender();
+    });
+  });
+
+  // perf selects
+  $("perfSortSel").addEventListener("change", ()=> perfRender());
+  $("perfTypeSel").addEventListener("change", ()=> perfRender());
+
+  // screener table click
   tbody.addEventListener("click", (e) => {
     const t = e.target;
 
@@ -904,17 +1723,35 @@ function bind(){
     renderTable();
   });
 
-  $("detailCloseBtn").addEventListener("click", () => {
-    closeDetail();
-    renderTable();
+  // perf table click: show history (right panel)
+  perfTbody.addEventListener("click", (e)=>{
+    const tr = e.target.closest("tr[data-perf-code]");
+    if(!tr) return;
+    const code = tr.getAttribute("data-perf-code");
+    if(!code) return;
+    perfShowCodeHistory(code);
   });
 
-  window.addEventListener("resize", () => renderTable());
+  // detail close
+  $("detailCloseBtn").addEventListener("click", () => {
+    closeDetail();
+    if(viewPerformance.style.display !== "none") perfRender();
+    else renderTable();
+  });
 
+  window.addEventListener("resize", () => {
+    if(viewPerformance.style.display !== "none") perfRender();
+    else renderTable();
+  });
+
+  // fill settings inputs
   $("urlALL").value = sheetUrls.ALL;
   $("urlTREND").value = sheetUrls.TREND;
   $("urlPULLBACK").value = sheetUrls.PULLBACK;
   $("urlBREAKOUT").value = sheetUrls.BREAKOUT;
+  $("urlSTORAGE").value = sheetUrls.STORAGE;
+
+  $("perfWindowSel").value = String(perfWindow);
 
   saveFavs();
 }
