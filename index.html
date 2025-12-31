@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-  <title>한국주식 퀀트 대시보드</title>
+  <title>K-Stock Quant Dashboard PRO</title>
   <style>
     :root{
       --bg:#0b1220; --panel:#0f1a2e; --panel2:#0c1628; --line:rgba(148,163,184,.18);
@@ -11,90 +11,99 @@
       --accent:#60a5fa; --radius:16px;
     }
     *{ box-sizing:border-box; }
-    body{ margin:0; font-family: sans-serif; background: var(--bg); color:var(--txt); overflow-x:hidden; }
-    .app{ display:flex; flex-direction:column; min-height:100vh; }
+    body{ margin:0; font-family: sans-serif; background: var(--bg); color:var(--txt); overflow:hidden; }
+    .app{ display:flex; flex-direction:column; height:100vh; }
     
-    /* [개선] 탭 버튼 시인성 강화 */
-    .tabbar { margin: 20px 0; display: flex; gap: 15px; padding: 0 20px; }
+    /* 탭 버튼 시인성 극대화 */
+    .tabbar { margin: 20px; display: flex; gap: 15px; }
     .tab-btn { 
-      padding: 12px 30px; border-radius: 12px; border: 2px solid var(--line);
-      background: var(--panel); color: var(--muted); font-size: 16px; font-weight: 900;
-      cursor: pointer; transition: all 0.3s;
+      padding: 16px 40px; border-radius: 14px; border: 2px solid var(--line);
+      background: var(--panel); color: #fff; font-size: 18px; font-weight: 900;
+      cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
     }
     .tab-btn.on { 
-      background: var(--accent); color: #fff; border-color: var(--accent);
-      box-shadow: 0 4px 15px rgba(96, 165, 250, 0.4);
+      background: linear-gradient(135deg, #3b82f6, #2563eb); border-color: #60a5fa;
+      box-shadow: 0 0 25px rgba(59, 130, 246, 0.6); transform: translateY(-2px);
     }
 
-    .main{ flex:1; padding: 0 20px 20px 20px; }
-    .grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin-bottom:25px; }
-    .card{ 
-      border:1px solid var(--line); background: var(--panel); border-radius: var(--radius); 
-      padding: 20px; cursor: pointer; transition: 0.2s;
+    .main{ flex:1; display:flex; overflow:hidden; padding: 0 20px 20px 20px; gap:20px; }
+    .content-area { flex:1; overflow-y:auto; }
+    
+    #detailPanel {
+      width: 480px; background: var(--panel); border: 1px solid var(--line);
+      border-radius: var(--radius); display: none; flex-direction: column;
+      box-shadow: -10px 0 40px rgba(0,0,0,0.6); overflow: hidden;
     }
-    .card:hover{ transform: translateY(-5px); border-color: var(--accent); }
-    .card .v{ margin-top:12px; font-size:28px; font-weight:900; }
-    
-    /* 시그널 배지 스타일 */
-    .badge-sig { padding: 4px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; margin-right: 4px; display: inline-block; }
-    .sig-trend { background: rgba(52, 211, 153, 0.2); color: #34d399; }
-    .sig-pullback { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
-    .sig-breakout { background: rgba(251, 113, 133, 0.2); color: #fb7185; }
-    
-    .panel{ background: var(--panel2); border-radius: var(--radius); border: 1px solid var(--line); overflow:hidden; }
-    .panelHead{ padding: 20px; border-bottom: 1px solid var(--line); display:flex; justify-content:space-between; align-items:center; }
-    table{ width:100%; border-collapse:collapse; font-size:14px; min-width:900px; }
-    th{ background: rgba(255,255,255,0.03); color: var(--muted); padding: 15px; text-align:left; font-weight: 600; }
-    td{ padding: 15px; border-bottom: 1px solid var(--line); }
-    .numRight{ text-align:right; font-family: 'Roboto Mono', monospace; }
-    .btn-refresh{ padding: 10px 20px; border-radius: 10px; background: var(--good); color: #000; font-weight: bold; border: none; cursor: pointer; }
+
+    /* 시그널 배지 */
+    .badge-sig { padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-right: 5px; display: inline-block; }
+    .sig-trend { background: #10b981; color: #fff; }
+    .sig-pullback { background: #f59e0b; color: #fff; }
+    .sig-breakout { background: #ef4444; color: #fff; }
+
+    table{ width:100%; border-collapse:collapse; font-size:14px; min-width:1000px; }
+    tr.clickable:hover { background: rgba(255,255,255,0.07); cursor: pointer; }
+    th{ background: rgba(255,255,255,0.05); color: var(--muted); padding: 18px 15px; text-align:left; position: sticky; top:0; z-index:10; }
+    td{ padding: 16px 15px; border-bottom: 1px solid var(--line); }
+    .numRight{ text-align:right; font-family: 'Roboto Mono', monospace; font-weight: 500; }
   </style>
 </head>
 <body>
 <div class="app">
-  <div style="padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line);">
-    <div><b style="font-size: 20px;">K-Stock Quant Dashboard</b> <span id="statusLine" style="font-size: 12px; color: var(--muted); margin-left: 10px;"></span></div>
-    <button class="btn-refresh" id="btnRefresh">데이터 갱신</button>
+  <div style="padding: 15px 25px; border-bottom: 1px solid var(--line); display:flex; justify-content:space-between; align-items:center; background: rgba(15,26,46,0.8);">
+    <div style="font-size: 24px; font-weight:950; letter-spacing:-1px; color:#fff;">K-QUANT <span style="color:var(--accent)">INTELLIGENCE</span></div>
+    <button style="padding: 10px 22px; border-radius: 10px; background: var(--good); border:none; font-weight:900; cursor:pointer;" id="btnRefresh">실시간 데이터 갱신</button>
   </div>
 
   <div class="tabbar">
-    <button class="tab-btn on" id="tabScreen">🔎 포착 종목</button>
-    <button class="tab-btn" id="tabPerf">📊 성과 측정</button>
+    <button class="tab-btn on" id="tabScreen">🔎 포착 종목 리스트</button>
+    <button class="tab-btn" id="tabPerf">📊 성과 추적 보드</button>
   </div>
   
   <div class="main">
-    <section id="screenView">
-      <div class="grid">
-        <div class="card" onclick="switchList('ALL')"><div class="k">전체 포착</div><div class="v" id="statAll">-</div></div>
-        <div class="card" onclick="switchList('TREND')"><div class="k">추세 추종</div><div class="v" id="statTrend">-</div></div>
-        <div class="card" onclick="switchList('PULLBACK')"><div class="k">눌림목</div><div class="v" id="statPullback">-</div></div>
-        <div class="card" onclick="switchList('BREAKOUT')"><div class="k">박스권 돌파</div><div class="v" id="statBreakout">-</div></div>
-      </div>
-      <div class="panel">
-        <div class="panelHead"><h3 id="listTitle" style="margin:0;">리스트 (ALL)</h3><div id="screenCount">0건</div></div>
-        <div style="overflow-x:auto;">
-          <table>
-            <thead><tr><th>코드</th><th>종목명</th><th class="numRight">현재가</th><th class="numRight">거래대금</th><th class="numRight">RSI14</th><th class="numRight">Stoch K</th><th style="text-align:center;">시그널</th></tr></thead>
-            <tbody id="screenTbody"></tbody>
-          </table>
+    <div class="content-area">
+      <section id="screenView">
+        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:15px; margin-bottom:25px;">
+          <div class="card" onclick="switchList('ALL')"><div style="font-size:13px; color:var(--muted)">전체 포착</div><div style="font-size:32px; font-weight:950;" id="statAll">-</div></div>
+          <div class="card" onclick="switchList('TREND')"><div style="font-size:13px; color:var(--muted)">추세</div><div style="font-size:32px; font-weight:950; color:var(--good)" id="statTrend">-</div></div>
+          <div class="card" onclick="switchList('PULLBACK')"><div style="font-size:13px; color:var(--muted)">눌림</div><div style="font-size:32px; font-weight:950; color:var(--warn)" id="statPullback">-</div></div>
+          <div class="card" onclick="switchList('BREAKOUT')"><div style="font-size:13px; color:var(--muted)">돌파</div><div style="font-size:32px; font-weight:950; color:var(--bad)" id="statBreakout">-</div></div>
         </div>
-      </div>
-    </section>
+        <div style="background:var(--panel2); border-radius:var(--radius); border:1px solid var(--line); overflow:hidden;">
+          <div class="panelHead" style="background: rgba(255,255,255,0.02);"><h3 id="listTitle" style="margin:0; font-size:18px;">리스트: ALL</h3><div id="screenCount" style="font-weight:bold;">0 종목</div></div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead><tr><th>코드</th><th>종목명</th><th class="numRight">현재가</th><th class="numRight">거래대금</th><th class="numRight">RSI14</th><th class="numRight">Stoch K</th><th style="text-align:center;">시그널</th></tr></thead>
+              <tbody id="screenTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
-    <section id="perfView" style="display:none;">
-      <div class="panel">
-        <div class="panelHead"><h3 style="margin:0;">포착일별 성과 추적</h3></div>
-        <div style="overflow-x:auto;">
-          <table>
-            <thead><tr><th>포착일</th><th>코드</th><th>종목명</th><th class="numRight">포착가</th><th class="numRight">현재가</th><th class="numRight">수익률</th><th class="numRight">D1(당일)</th><th class="numRight">D3</th><th class="numRight">D5</th><th class="numRight">D7</th><th class="numRight">D9</th></tr></thead>
-            <tbody id="perfTbody"></tbody>
-          </table>
+      <section id="perfView" style="display:none;">
+        <div style="background:var(--panel2); border-radius:var(--radius); border:1px solid var(--line); overflow:hidden;">
+          <div class="panelHead" style="background: rgba(255,255,255,0.02);"><h3 style="margin:0; font-size:18px;">포착가 대비 성과 (D1-D9)</h3></div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead><tr><th>포착일</th><th>코드</th><th>종목명</th><th class="numRight">포착가</th><th class="numRight">현재가</th><th class="numRight">수익률</th><th class="numRight">D1</th><th class="numRight">D3</th><th class="numRight">D5</th><th class="numRight">D7</th><th class="numRight">D9</th></tr></thead>
+              <tbody id="perfTbody"></tbody>
+            </table>
+          </div>
         </div>
+      </section>
+    </div>
+
+    <div id="detailPanel">
+      <div class="panelHead">
+        <div><b id="detailName" style="font-size:20px;">-</b> <span id="detailCode" style="color:var(--muted); font-family:monospace;"></span></div>
+        <button onclick="closeDetail()" style="background:none; border:none; color:#fff; font-size:24px; cursor:pointer;">✕</button>
       </div>
-    </section>
+      <div id="chartContainer" style="flex:1;"></div>
+    </div>
   </div>
 </div>
 
+<script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 <script>
 const URLS = {
   ALL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsPovUyvREyTUmaoACXouBLKs4RXyZgoco6l9xV08L2hIZeoZHJTdEv4drJeOJHnNoY2o2k3XsIf_y/pub?gid=0&single=true&output=csv",
@@ -107,39 +116,71 @@ const URLS = {
 let data = { ALL:[], TREND:[], PULLBACK:[], BREAKOUT:[], STORAGE:[] };
 let currentMode = 'ALL';
 
-// [개선] 가격 포맷: 콤마 + "원"
+// [오류 수정] 콤마 포함 숫자를 안전하게 파싱하여 포맷팅
 function fmtPrice(n) {
-  const x = parseFloat(String(n).replace(/,/g, ""));
-  return isNaN(x) ? "-" : x.toLocaleString() + "원";
+  if (!n) return "-";
+  // 문자열 내의 콤마, 원, 공백 제거 후 숫자 추출
+  const val = String(n).replace(/[^-0-9.]/g, "");
+  const num = parseFloat(val);
+  return isNaN(num) ? "-" : num.toLocaleString('ko-KR') + "원";
 }
 
-// [개선] 거래대금 포맷: "억원" 단위
 function fmtTurnover(n) {
-  const x = parseFloat(String(n).replace(/,/g, ""));
-  if(isNaN(x)) return "-";
-  return Math.floor(x / 100000000).toLocaleString() + "억";
+  if (!n) return "-";
+  const num = parseFloat(String(n).replace(/[^-0-9.]/g, ""));
+  return isNaN(num) ? "-" : Math.floor(num / 100000000).toLocaleString() + "억";
 }
 
-function fmt2(n) { const x = parseFloat(n); return isNaN(x) ? "-" : x.toFixed(2); }
-
-function pct(v) {
-  const x = parseFloat(String(v).replace('%',''));
-  if(isNaN(x)) return "-";
-  const color = x >= 0 ? '#34d399' : '#fb7185';
-  return `<span style="color:${color}; font-weight:bold;">${x.toFixed(2)}%</span>`;
-}
-
-// [개선] 복수 시그널 표기 로직
 function getBadges(r) {
-  let html = "";
-  if(String(r.Trend).toLowerCase()==="true") html += '<span class="badge-sig sig-trend">추세</span>';
-  if(String(r.Pullback).toLowerCase()==="true") html += '<span class="badge-sig sig-pullback">눌림</span>';
-  if(String(r.Breakout).toLowerCase()==="true") html += '<span class="badge-sig sig-breakout">돌파</span>';
-  return html || '<span class="badge-sig" style="background:rgba(255,255,255,0.1);">관망</span>';
+  let h = "";
+  if(String(r.Trend).toUpperCase()==="TRUE") h += '<span class="badge-sig sig-trend">추세</span>';
+  if(String(r.Pullback).toUpperCase()==="TRUE") h += '<span class="badge-sig sig-pullback">눌림</span>';
+  if(String(r.Breakout).toUpperCase()==="TRUE") h += '<span class="badge-sig sig-breakout">돌파</span>';
+  return h;
 }
+
+// [핵심 수정] 콤마가 포함된 CSV 필드를 안전하게 파싱하는 정규표현식 파서
+function parseCSV(text) {
+  const rows = [];
+  const lines = text.split(/\r?\n/);
+  const regex = /("([^"]|"")*"|[^,"\r\n]+|(?<=,|^)(?=[,\r\n]|$))/g;
+
+  for (let line of lines) {
+    if (!line.trim()) continue;
+    let row = [];
+    let match;
+    while ((match = regex.exec(line)) !== null) {
+      let val = match[0];
+      if (val.startsWith('"') && val.endsWith('"')) {
+        val = val.substring(1, val.length - 1).replace(/""/g, '"');
+      }
+      row.push(val);
+    }
+    rows.push(row);
+  }
+
+  const header = rows.shift().map(h => h.trim());
+  return rows.map(r => {
+    let obj = {}; 
+    header.forEach((h, i) => obj[h] = (r[i] !== undefined) ? r[i].trim() : "");
+    return obj;
+  });
+}
+
+function openDetail(r) {
+  document.getElementById('detailPanel').style.display = 'flex';
+  document.getElementById('detailName').textContent = r.Name;
+  document.getElementById('detailCode').textContent = r.Code;
+  new TradingView.widget({
+    "autosize": true, "symbol": "KRX:" + String(r.Code).padStart(6, '0'),
+    "interval": "D", "timezone": "Asia/Seoul", "theme": "dark", "style": "1",
+    "locale": "ko", "container_id": "chartContainer", "hide_top_toolbar": true
+  });
+}
+function closeDetail() { document.getElementById('detailPanel').style.display = 'none'; }
 
 async function load() {
-  document.getElementById('statusLine').textContent = "데이터 불러오는 중...";
+  document.getElementById('statusLine').textContent = "데이터 동기화 중...";
   try {
     for(let key in URLS) {
       const res = await fetch(URLS[key] + "&ts=" + Date.now());
@@ -147,17 +188,8 @@ async function load() {
       data[key] = parseCSV(text);
     }
     render();
-    document.getElementById('statusLine').textContent = "최종 동기화: " + new Date().toLocaleTimeString();
+    document.getElementById('statusLine').textContent = "Last Sync: " + new Date().toLocaleTimeString();
   } catch(e) { console.error(e); }
-}
-
-function parseCSV(text) {
-  const rows = text.split('\n').map(r => r.split(','));
-  const header = rows.shift().map(h => h.trim());
-  return rows.filter(r => r.length > 1).map(r => {
-    let obj = {}; header.forEach((h, i) => obj[h] = r[i]?.trim());
-    return obj;
-  });
 }
 
 function render() {
@@ -167,34 +199,45 @@ function render() {
   document.getElementById('statBreakout').textContent = data.BREAKOUT.length;
   
   const list = data[currentMode];
-  document.getElementById('listTitle').textContent = `종목 리스트 (${currentMode})`;
-  document.getElementById('screenCount').textContent = list.length + "건";
+  document.getElementById('listTitle').textContent = `종목 리스트: ${currentMode}`;
+  document.getElementById('screenCount').textContent = list.length + " 종목";
   
   document.getElementById('screenTbody').innerHTML = list.map(r => `
-    <tr>
-      <td style="color:var(--muted)">${r.Code}</td><td><b>${r.Name}</b></td>
+    <tr class="clickable" onclick='openDetail(${JSON.stringify(r)})'>
+      <td style="color:var(--muted)">${String(r.Code).padStart(6,'0')}</td><td><b>${r.Name}</b></td>
       <td class="numRight">${fmtPrice(r.Close)}</td>
       <td class="numRight">${fmtTurnover(r.Turnover)}</td>
-      <td class="numRight">${fmt2(r.RSI14)}</td>
-      <td class="numRight">${fmt2(r.Stoch_K)}</td>
+      <td class="numRight">${parseFloat(r.RSI14 || 0).toFixed(2)}</td>
+      <td class="numRight">${parseFloat(r.Stoch_K || 0).toFixed(2)}</td>
       <td style="text-align:center;">${getBadges(r)}</td>
     </tr>
   `).join('');
 
-  document.getElementById('perfTbody').innerHTML = data.STORAGE.slice().reverse().map(r => `
-    <tr>
-      <td style="color:var(--muted)">${(r.DetectDate || "").split(' ')[0]}</td>
-      <td>${r.Code}</td><td><b>${r.Name}</b></td>
-      <td class="numRight">${fmtPrice(r.EntryPrice)}</td>
-      <td class="numRight">${fmtPrice(r.Close_Today)}</td>
-      <td class="numRight">${pct(r.Return)}</td>
-      <td class="numRight">${pct(r.D1)}</td>
-      <td class="numRight">${pct(r.D3)}</td>
-      <td class="numRight">${pct(r.D5)}</td>
-      <td class="numRight">${pct(r.D7)}</td>
-      <td class="numRight">${pct(r.D9)}</td>
-    </tr>
-  `).join('');
+  document.getElementById('perfTbody').innerHTML = data.STORAGE.slice().reverse().map(r => {
+    const color = (v) => {
+      const x = parseFloat(String(v).replace('%',''));
+      return isNaN(x) ? 'inherit' : (x >= 0 ? '#34d399' : '#fb7185');
+    };
+    const pctTxt = (v) => {
+      const x = parseFloat(String(v).replace('%',''));
+      return isNaN(x) ? "-" : x.toFixed(2) + "%";
+    };
+
+    return `
+      <tr>
+        <td style="color:var(--muted)">${(r.DetectDate || "").split(' ')[0]}</td>
+        <td>${String(r.Code).padStart(6,'0')}</td><td><b>${r.Name}</b></td>
+        <td class="numRight">${fmtPrice(r.EntryPrice)}</td>
+        <td class="numRight">${fmtPrice(r.Close_Today)}</td>
+        <td class="numRight" style="color:${color(r.Return)}; font-weight:bold;">${pctTxt(r.Return)}</td>
+        <td class="numRight" style="color:${color(r.D1)}">${pctTxt(r.D1)}</td>
+        <td class="numRight" style="color:${color(r.D3)}">${pctTxt(r.D3)}</td>
+        <td class="numRight" style="color:${color(r.D5)}">${pctTxt(r.D5)}</td>
+        <td class="numRight" style="color:${color(r.D7)}">${pctTxt(r.D7)}</td>
+        <td class="numRight" style="color:${color(r.D9)}">${pctTxt(r.D9)}</td>
+      </tr>
+    `;
+  }).join('');
 }
 
 function switchList(mode) { currentMode = mode; render(); }
