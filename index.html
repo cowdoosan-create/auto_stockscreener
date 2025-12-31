@@ -28,7 +28,6 @@
     
     .header-section { flex-shrink: 0; z-index: 100; background: var(--bg); }
     
-    /* 탭바 가로 스크롤 대응 */
     .tabbar { 
       margin: 15px 20px; 
       display: flex; 
@@ -58,7 +57,6 @@
       gap:20px; 
     }
     
-    /* 모바일 반응형: 화면이 좁을 때 세로 배치 */
     @media (max-width: 1024px) {
       .main { flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; }
       .content-area, #detailPanel { flex: none !important; width: 100% !important; height: auto !important; }
@@ -86,7 +84,6 @@
     }
     @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
 
-    /* iOS 관성 스크롤 및 매끄러운 스크롤 */
     .custom-scroll {
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
@@ -106,21 +103,21 @@
       overflow: hidden;
     }
     
-    /* 테이블 가로 스크롤 강화 */
     .table-responsive {
       flex: 1;
       overflow: auto;
       -webkit-overflow-scrolling: touch;
     }
     
-    table { width:100%; border-collapse:collapse; font-size:12px; min-width:1000px; }
+    /* 열 간격 최적화: min-width 조정 및 균등 배분을 위한 설정 */
+    table { width:100%; border-collapse:collapse; font-size:12px; min-width:880px; table-layout: fixed; }
     tr.clickable:hover { background: rgba(255,255,255,0.05); cursor: pointer; }
     tr.clickable:active { background: rgba(255,255,255,0.1); }
     
     th { 
       background: #162136; 
       color: var(--muted); 
-      padding: 12px 8px; 
+      padding: 12px 6px; /* 좌우 패딩 축소 */
       text-align:left; 
       position: sticky; 
       top: 0; 
@@ -129,10 +126,22 @@
       white-space: nowrap;
     }
     
-    td { padding: 10px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    td { padding: 10px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
     .numRight { text-align:right; font-family: 'Roboto Mono', monospace; }
 
-    /* 뱃지 스타일 유지 */
+    /* 컬럼 너비 고정 (조밀하고 일정한 간격 유지) */
+    .col-code { width: 70px; }
+    .col-name { width: 140px; }
+    .col-price { width: 90px; }
+    .col-rsi { width: 70px; }
+    .col-stoch { width: 70px; }
+    .col-turn { width: 90px; }
+    .col-sig { width: 150px; }
+    
+    /* 성과 테이블 전용 너비 */
+    .col-date { width: 90px; }
+    .col-perf { width: 75px; }
+
     .badge-sig { 
       display: inline-flex; 
       align-items: center; 
@@ -205,13 +214,19 @@
         <div class="table-container">
           <div style="padding: 12px 15px; border-bottom: 1px solid var(--line); display:flex; justify-content:space-between; align-items:center; background: rgba(255,255,255,0.02); z-index: 30;">
             <span id="listTitle" style="font-weight:700; font-size:14px; color:var(--accent);">리스트: 전체보기</span>
-            <span id="screenCount" style="font-size:12px; color:var(--muted);">0 종목</span>
+            <!-- 0종목 표시 삭제됨 -->
           </div>
           <div class="table-responsive custom-scroll">
             <table id="mainTable">
               <thead>
                 <tr>
-                  <th>코드</th><th>종목명</th><th class="numRight">현재가</th><th class="numRight">RSI</th><th class="numRight">Stoch K</th><th class="numRight">거래대금</th><th style="text-align:center;">시그널</th>
+                  <th class="col-code">코드</th>
+                  <th class="col-name">종목명</th>
+                  <th class="col-price numRight">현재가</th>
+                  <th class="col-rsi numRight">RSI</th>
+                  <th class="col-stoch numRight">Stoch K</th>
+                  <th class="col-turn numRight">거래대금</th>
+                  <th class="col-sig" style="text-align:center;">시그널</th>
                 </tr>
               </thead>
               <tbody id="screenTbody"></tbody>
@@ -227,7 +242,18 @@
             <table>
               <thead>
                 <tr>
-                  <th>포착일</th><th>코드</th><th>종목명</th><th style="text-align:center;">시그널</th><th class="numRight">포착가</th><th class="numRight">현재가</th><th class="numRight">수익률</th><th class="numRight">D1</th><th class="numRight">D3</th><th class="numRight">D5</th><th class="numRight">D7</th><th class="numRight">D9</th>
+                  <th class="col-date">포착일</th>
+                  <th class="col-code">코드</th>
+                  <th class="col-name">종목명</th>
+                  <th class="col-sig" style="text-align:center;">시그널</th>
+                  <th class="col-price numRight">포착가</th>
+                  <th class="col-price numRight">현재가</th>
+                  <th class="col-perf numRight">수익률</th>
+                  <th class="col-perf numRight">D1</th>
+                  <th class="col-perf numRight">D3</th>
+                  <th class="col-perf numRight">D5</th>
+                  <th class="col-perf numRight">D7</th>
+                  <th class="col-perf numRight">D9</th>
                 </tr>
               </thead>
               <tbody id="perfTbody"></tbody>
@@ -271,7 +297,6 @@
 <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 
 <script>
-// 모바일 주소창 보정 스크립트
 const setVh = () => {
   let vh = window.innerHeight * 0.01;
   document.documentElement.style.setProperty('--vh', `${vh}px`);
@@ -399,13 +424,13 @@ function render() {
     const rsiVal = parseFloat(r.RSI14 || 0), stochVal = parseFloat(r.Stoch_K || 0);
     return `
       <tr class="clickable" onclick='openDetail(${JSON.stringify(r)})'>
-        <td style="color:var(--muted); font-family:monospace;">${String(r.Code).padStart(6,'0')}</td>
-        <td style="font-weight:700; color:#fff;">${r.Name}</td>
-        <td class="numRight">${fmtPrice(r.Close)}</td>
-        <td class="numRight" style="color:${rsiVal >= 70 ? 'var(--bad)' : 'inherit'};">${rsiVal.toFixed(1)}</td>
-        <td class="numRight" style="color:${stochVal >= 80 ? 'var(--bad)' : 'inherit'};">${stochVal.toFixed(1)}</td>
-        <td class="numRight" style="color:var(--muted)">${fmtTurnover(r.Turnover)}</td>
-        <td style="text-align:center;">${getBadges(r)}</td>
+        <td class="col-code" style="color:var(--muted); font-family:monospace;">${String(r.Code).padStart(6,'0')}</td>
+        <td class="col-name" style="font-weight:700; color:#fff;">${r.Name}</td>
+        <td class="col-price numRight">${fmtPrice(r.Close)}</td>
+        <td class="col-rsi numRight" style="color:${rsiVal >= 70 ? 'var(--bad)' : 'inherit'};">${rsiVal.toFixed(1)}</td>
+        <td class="col-stoch numRight" style="color:${stochVal >= 80 ? 'var(--bad)' : 'inherit'};">${stochVal.toFixed(1)}</td>
+        <td class="col-turn numRight" style="color:var(--muted)">${fmtTurnover(r.Turnover)}</td>
+        <td class="col-sig" style="text-align:center;">${getBadges(r)}</td>
       </tr>
     `;
   }).join('');
@@ -425,18 +450,18 @@ function render() {
     const current = parseFloat(String(r.Close_Today || 0).replace(/[^-0-9.]/g, ""));
     return `
       <tr class="clickable" onclick='openDetail(${JSON.stringify(r)})'>
-        <td style="color:var(--muted)">${(r.DetectDate || "").split(' ')[0]}</td>
-        <td>${String(r.Code).padStart(6,'0')}</td>
-        <td style="font-weight:700;">${r.Name}</td>
-        <td style="text-align:center;">${getBadges(r)}</td>
-        <td class="numRight" style="color:var(--muted)">${fmtPrice(r.EntryPrice)}</td>
-        <td class="numRight" style="color:${current > entry ? 'var(--bad)' : 'inherit'};">${fmtPrice(r.Close_Today)}</td>
-        <td class="numRight" style="color:${getPerfColor(r.Return)}; font-weight:700;">${pctTxt(r.Return)}</td>
-        <td class="numRight" style="color:${getPerfColor(r.D1)}">${pctTxt(r.D1)}</td>
-        <td class="numRight" style="color:${getPerfColor(r.D3)}">${pctTxt(r.D3)}</td>
-        <td class="numRight" style="color:${getPerfColor(r.D5)}">${pctTxt(r.D5)}</td>
-        <td class="numRight" style="color:${getPerfColor(r.D7)}">${pctTxt(r.D7)}</td>
-        <td class="numRight" style="color:${getPerfColor(r.D9)}">${pctTxt(r.D9)}</td>
+        <td class="col-date" style="color:var(--muted)">${(r.DetectDate || "").split(' ')[0]}</td>
+        <td class="col-code">${String(r.Code).padStart(6,'0')}</td>
+        <td class="col-name" style="font-weight:700;">${r.Name}</td>
+        <td class="col-sig" style="text-align:center;">${getBadges(r)}</td>
+        <td class="col-price numRight" style="color:var(--muted)">${fmtPrice(r.EntryPrice)}</td>
+        <td class="col-price numRight" style="color:${current > entry ? 'var(--bad)' : 'inherit'};">${fmtPrice(r.Close_Today)}</td>
+        <td class="col-perf numRight" style="color:${getPerfColor(r.Return)}; font-weight:700;">${pctTxt(r.Return)}</td>
+        <td class="col-perf numRight" style="color:${getPerfColor(r.D1)}">${pctTxt(r.D1)}</td>
+        <td class="col-perf numRight" style="color:${getPerfColor(r.D3)}">${pctTxt(r.D3)}</td>
+        <td class="col-perf numRight" style="color:${getPerfColor(r.D5)}">${pctTxt(r.D5)}</td>
+        <td class="col-perf numRight" style="color:${getPerfColor(r.D7)}">${pctTxt(r.D7)}</td>
+        <td class="col-perf numRight" style="color:${getPerfColor(r.D9)}">${pctTxt(r.D9)}</td>
       </tr>
     `;
   }).join('');
