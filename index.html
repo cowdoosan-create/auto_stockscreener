@@ -9,7 +9,7 @@
       --bg:#0b1220; --panel:#0f1a2e; --panel2:#0c1628; --line:rgba(148,163,184,.18);
       --txt:#e5e7eb; --muted:#94a3b8; --good:#34d399; --bad:#fb7185; --warn:#fbbf24;
       --accent:#60a5fa; --radius:16px;
-      --vh: 1vh; /* 모바일 주소창 높이 보정용 */
+      --vh: 1vh;
     }
     *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
     
@@ -31,7 +31,7 @@
     .tabbar { 
       margin: 15px 20px; 
       display: flex; 
-      gap: 12px; 
+      gap: 10px; 
       flex-shrink: 0; 
       overflow-x: auto; 
       scrollbar-width: none; 
@@ -40,7 +40,7 @@
     .tabbar::-webkit-scrollbar { display: none; }
     
     .tab-btn { 
-      padding: 10px 20px; border-radius: 10px; border: 1px solid var(--line);
+      padding: 10px 18px; border-radius: 10px; border: 1px solid var(--line);
       background: var(--panel); color: #fff; font-size: 14px; font-weight: 700;
       cursor: pointer; transition: 0.2s; white-space: nowrap;
     }
@@ -58,10 +58,10 @@
     }
     
     @media (max-width: 1024px) {
-      .main { flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+      .main { flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 12px 12px 12px; gap: 12px; }
       .content-area, #detailPanel { flex: none !important; width: 100% !important; height: auto !important; }
-      #detailPanel { min-height: 500px; margin-bottom: 20px; }
-      .table-container { max-height: 60vh; }
+      #detailPanel { min-height: 480px; margin-bottom: 20px; }
+      .table-container { max-height: 55vh; }
     }
 
     .content-area { 
@@ -88,7 +88,7 @@
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
     }
-    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
     .custom-scroll::-webkit-scrollbar-track { background: transparent; }
     .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
 
@@ -109,15 +109,15 @@
       -webkit-overflow-scrolling: touch;
     }
     
-    /* 열 간격 최적화: min-width 조정 및 균등 배분을 위한 설정 */
-    table { width:100%; border-collapse:collapse; font-size:12px; min-width:880px; table-layout: fixed; }
+    /* 열 간격 최적화: min-width를 줄이고 table-layout: fixed로 간격 밀착 */
+    table { width:100%; border-collapse:collapse; font-size:12px; min-width:820px; table-layout: fixed; }
     tr.clickable:hover { background: rgba(255,255,255,0.05); cursor: pointer; }
     tr.clickable:active { background: rgba(255,255,255,0.1); }
     
     th { 
       background: #162136; 
       color: var(--muted); 
-      padding: 12px 6px; /* 좌우 패딩 축소 */
+      padding: 12px 6px; 
       text-align:left; 
       position: sticky; 
       top: 0; 
@@ -126,21 +126,21 @@
       white-space: nowrap;
     }
     
-    td { padding: 10px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    td { padding: 10px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .numRight { text-align:right; font-family: 'Roboto Mono', monospace; }
 
-    /* 컬럼 너비 고정 (조밀하고 일정한 간격 유지) */
-    .col-code { width: 70px; }
-    .col-name { width: 140px; }
-    .col-price { width: 90px; }
-    .col-rsi { width: 70px; }
-    .col-stoch { width: 70px; }
-    .col-turn { width: 90px; }
-    .col-sig { width: 150px; }
+    /* 컬럼 너비 재조정 (밀착형) */
+    .col-code { width: 60px; }
+    .col-name { width: 110px; } /* 140 -> 110으로 축소하여 현재가와 밀착 */
+    .col-price { width: 85px; }
+    .col-rsi { width: 60px; }
+    .col-stoch { width: 65px; }
+    .col-turn { width: 85px; }
+    .col-sig { width: 140px; }
     
     /* 성과 테이블 전용 너비 */
-    .col-date { width: 90px; }
-    .col-perf { width: 75px; }
+    .col-date { width: 85px; }
+    .col-perf { width: 70px; }
 
     .badge-sig { 
       display: inline-flex; 
@@ -214,7 +214,6 @@
         <div class="table-container">
           <div style="padding: 12px 15px; border-bottom: 1px solid var(--line); display:flex; justify-content:space-between; align-items:center; background: rgba(255,255,255,0.02); z-index: 30;">
             <span id="listTitle" style="font-weight:700; font-size:14px; color:var(--accent);">리스트: 전체보기</span>
-            <!-- 0종목 표시 삭제됨 -->
           </div>
           <div class="table-responsive custom-scroll">
             <table id="mainTable">
