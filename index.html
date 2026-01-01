@@ -61,7 +61,7 @@
       .main { flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 12px 12px 12px; gap: 12px; }
       .content-area, #detailPanel { flex: none !important; width: 100% !important; height: auto !important; }
       #detailPanel { min-height: 480px; margin-bottom: 20px; }
-      .table-container { max-height: 55vh; }
+      .table-container { max-height: 50vh; }
     }
 
     .content-area { 
@@ -109,7 +109,6 @@
       -webkit-overflow-scrolling: touch;
     }
     
-    /* 열 간격 최적화: min-width를 줄이고 table-layout: fixed로 간격 밀착 */
     table { width:100%; border-collapse:collapse; font-size:12px; min-width:820px; table-layout: fixed; }
     tr.clickable:hover { background: rgba(255,255,255,0.05); cursor: pointer; }
     tr.clickable:active { background: rgba(255,255,255,0.1); }
@@ -126,33 +125,95 @@
       white-space: nowrap;
     }
     
+    th.sortable { cursor: pointer; user-select: none; }
+    th.sortable:hover { color: #fff; background: #1e2d4a; }
+    th.sortable::after { content: " ↕"; font-size: 10px; opacity: 0.3; }
+    th.sort-desc::after { content: " ↓"; opacity: 1; color: var(--accent); }
+    th.sort-asc::after { content: " ↑"; opacity: 1; color: var(--accent); }
+
     td { padding: 10px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .numRight { text-align:right; font-family: 'Roboto Mono', monospace; }
 
-    /* 컬럼 너비 재조정 (밀착형) */
+    /* 메인 테이블 컬럼 너비 (수정 금지 유지) */
     .col-code { width: 60px; }
-    .col-name { width: 110px; } /* 140 -> 110으로 축소하여 현재가와 밀착 */
+    .col-name { width: 110px; }
     .col-price { width: 85px; }
     .col-rsi { width: 60px; }
     .col-stoch { width: 65px; }
     .col-turn { width: 85px; }
     .col-sig { width: 140px; }
-    
-    /* 성과 테이블 전용 너비 */
     .col-date { width: 85px; }
     .col-perf { width: 70px; }
+
+    /* --- Best 5 요약 보드 전용 스타일 (좌측 배치 및 테두리 포함) --- */
+    .top-stats-container {
+      display: flex;
+      justify-content: flex-start; /* 좌측 정렬 */
+      margin-bottom: 15px;
+      flex-shrink: 0;
+      width: 100%;
+    }
+    
+    .mini-card {
+      background: var(--panel2);
+      border: 1px solid var(--line); /* 테두리가 콘텐츠 전체를 감싸도록 설정 */
+      border-radius: 12px;
+      padding: 10px;
+      width: 175px; /* 60 + 50 + 30 + 패딩 및 보정값 */
+      flex-shrink: 0;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+      display: inline-block;
+    }
+    
+    .mini-card h4 { 
+      margin: 0 0 8px 0; 
+      font-size: 12px; 
+      font-weight: 800; 
+      color: var(--bad); 
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 5px;
+    }
+    
+    .mini-table { 
+      width: 140px; /* 60 + 50 + 30 */
+      border-collapse: collapse; 
+      font-size: 10px; 
+      table-layout: fixed; 
+    }
+    .mini-table th { 
+      background: none; 
+      padding: 4px 1px; 
+      color: var(--muted); 
+      border-bottom: 1px solid var(--line); 
+      position: static; 
+      text-transform: none; 
+      letter-spacing: -0.5px; 
+      font-weight: bold;
+      text-align: left;
+    }
+    .mini-table td { 
+      padding: 6px 1px; 
+      border-bottom: 1px solid rgba(255,255,255,0.03); 
+      white-space: nowrap; 
+      overflow: hidden; 
+      text-overflow: ellipsis; 
+    }
+    
+    /* 요약 보드 전용 고정 픽셀 너비 적용 */
+    .best-name { width: 60px !important; }
+    .best-sig { width: 50px !important; text-align: center; }
+    .best-perf { width: 30px !important; text-align: right; }
 
     .badge-sig { 
       display: inline-flex; 
       align-items: center; 
-      padding: 2px 6px; 
-      border-radius: 12px; 
-      font-size: 10px; 
+      padding: 1px 3px; 
+      border-radius: 8px; 
+      font-size: 9px; 
       font-weight: 800; 
-      margin-right: 2px; 
-      gap: 3px;
+      margin-right: 1px; 
     }
-    .badge-sig::before { content: ""; width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
+    .badge-sig::before { content: ""; width: 3px; height: 3px; border-radius: 50%; display: inline-block; margin-right: 2px; }
     .sig-trend { background: rgba(16, 185, 129, 0.15); color: #34d399; }
     .sig-trend::before { background: #34d399; }
     .sig-pullback { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
@@ -235,8 +296,27 @@
       </section>
 
       <section id="perfView" style="display:none; flex-direction: column; height: 100%;">
+        <div class="top-stats-container">
+          <div class="mini-card">
+            <h4>🔥 수익률 Best 5</h4>
+            <table class="mini-table">
+              <thead>
+                <tr>
+                  <th class="best-name">종목명</th>
+                  <th class="best-sig">시그널</th>
+                  <th class="best-perf">수익률</th>
+                </tr>
+              </thead>
+              <tbody id="bestTbody"></tbody>
+            </table>
+          </div>
+        </div>
+
         <div class="table-container">
-          <div style="padding: 15px; border-bottom: 1px solid var(--line); font-weight:700; background: var(--panel2);">성과 추적 보드 (D1~D9)</div>
+          <div style="padding: 10px; border-bottom: 1px solid var(--line); font-weight:700; background: var(--panel2); display:flex; justify-content:space-between; align-items: center;">
+            <span style="font-size:13px;">성과 추적 보드</span>
+            <span style="font-size:9px; color:var(--muted); font-weight:normal;">헤더 클릭 시 정렬</span>
+          </div>
           <div class="table-responsive custom-scroll">
             <table>
               <thead>
@@ -247,12 +327,12 @@
                   <th class="col-sig" style="text-align:center;">시그널</th>
                   <th class="col-price numRight">포착가</th>
                   <th class="col-price numRight">현재가</th>
-                  <th class="col-perf numRight">수익률</th>
-                  <th class="col-perf numRight">D1</th>
-                  <th class="col-perf numRight">D3</th>
-                  <th class="col-perf numRight">D5</th>
-                  <th class="col-perf numRight">D7</th>
-                  <th class="col-perf numRight">D9</th>
+                  <th class="col-perf numRight sortable" id="sort-Return">수익률</th>
+                  <th class="col-perf numRight sortable" id="sort-D1">D1</th>
+                  <th class="col-perf numRight sortable" id="sort-D3">D3</th>
+                  <th class="col-perf numRight sortable" id="sort-D5">D5</th>
+                  <th class="col-perf numRight sortable" id="sort-D7">D7</th>
+                  <th class="col-perf numRight sortable" id="sort-D9">D9</th>
                 </tr>
               </thead>
               <tbody id="perfTbody"></tbody>
@@ -313,6 +393,8 @@ const URLS = {
 
 let data = { ALL:[], TREND:[], PULLBACK:[], BREAKOUT:[], STORAGE:[] };
 let currentMode = 'ALL';
+let perfSortKey = null; 
+let perfSortDir = 'original'; 
 
 function parseCSV(text) {
   const rows = [];
@@ -366,7 +448,7 @@ function getBadges(r) {
   if(String(r.Trend).toUpperCase()==="TRUE") h += '<span class="badge-sig sig-trend">추세</span>';
   if(String(r.Pullback).toUpperCase()==="TRUE") h += '<span class="badge-sig sig-pullback">눌림</span>';
   if(String(r.Breakout).toUpperCase()==="TRUE") h += '<span class="badge-sig sig-breakout">돌파</span>';
-  return h || '<span style="color:var(--muted); font-size:10px;">-</span>';
+  return h || "-";
 }
 
 function openDetail(r) {
@@ -394,7 +476,7 @@ function closeDetail() { document.getElementById('detailPanel').style.display = 
 
 async function load() {
   const status = document.getElementById('statusLine');
-  status.textContent = "최신 데이터 불러오는 중...";
+  status.textContent = "Syncing...";
   try {
     const ts = Date.now();
     for(const key of Object.keys(URLS)) {
@@ -402,8 +484,20 @@ async function load() {
       data[key] = parseCSV(await res.text());
     }
     render();
-    status.textContent = "업데이트 완료: " + new Date().toLocaleTimeString();
-  } catch(e) { status.textContent = "연동 실패"; console.error(e); }
+    status.textContent = "Updated: " + new Date().toLocaleTimeString();
+  } catch(e) { status.textContent = "Error"; console.error(e); }
+}
+
+function handlePerfSort(key) {
+  if (perfSortKey === key) {
+    if (perfSortDir === 'original') perfSortDir = 'desc';
+    else if (perfSortDir === 'desc') perfSortDir = 'asc';
+    else perfSortDir = 'original';
+  } else {
+    perfSortKey = key;
+    perfSortDir = 'desc';
+  }
+  render();
 }
 
 function render() {
@@ -427,22 +521,54 @@ function render() {
         <td class="col-name" style="font-weight:700; color:#fff;">${r.Name}</td>
         <td class="col-price numRight">${fmtPrice(r.Close)}</td>
         <td class="col-rsi numRight" style="color:${rsiVal >= 70 ? 'var(--bad)' : 'inherit'};">${rsiVal.toFixed(1)}</td>
-        <td class="col-stoch numRight" style="color:${stochVal >= 80 ? 'var(--bad)' : 'inherit'};">${stochVal.toFixed(1)}</td>
-        <td class="col-turn numRight" style="color:var(--muted)">${fmtTurnover(r.Turnover)}</td>
+        <td class="numRight col-stoch" style="color:${stochVal >= 80 ? 'var(--bad)' : 'inherit'};">${stochVal.toFixed(1)}</td>
+        <td class="numRight col-turn" style="color:var(--muted)">${fmtTurnover(r.Turnover)}</td>
         <td class="col-sig" style="text-align:center;">${getBadges(r)}</td>
       </tr>
     `;
   }).join('');
 
-  const storageList = (data.STORAGE || []).slice().reverse();
+  const rawStorage = (data.STORAGE || []);
+  let storageList = [...rawStorage].reverse(); 
+
+  const calcList = [...rawStorage].map(item => ({
+    ...item,
+    valReturn: parseFloat(String(item.Return || "").replace('%','')) || -999
+  })).sort((a, b) => b.valReturn - a.valReturn);
+
+  const getPctTxt = (v) => {
+    const x = parseFloat(String(v || "").replace('%',''));
+    return isNaN(x) ? "-" : (x > 0 ? "+" : "") + x.toFixed(1) + "%";
+  };
   const getPerfColor = (v) => {
     const x = parseFloat(String(v || "").replace('%',''));
     return isNaN(x) ? 'inherit' : (x > 0 ? 'var(--bad)' : '#fff');
   };
-  const pctTxt = (v) => {
-    const x = parseFloat(String(v || "").replace('%',''));
-    return isNaN(x) ? "-" : (x > 0 ? "+" : "") + x.toFixed(2) + "%";
-  };
+
+  // Best 5 Render - 고정 픽셀 규격 적용
+  document.getElementById('bestTbody').innerHTML = calcList.slice(0, 5).map(r => `
+    <tr class="clickable" onclick='openDetail(${JSON.stringify(r)})'>
+      <td class="best-name" style="width:60px !important;">${r.Name}</td>
+      <td class="best-sig" style="width:50px !important; text-align:center;">${getBadges(r)}</td>
+      <td class="best-perf" style="width:30px !important; text-align:right; color:var(--bad); font-weight:800; letter-spacing:-1px;">${getPctTxt(r.Return)}</td>
+    </tr>
+  `).join('');
+
+  if (perfSortKey && perfSortDir !== 'original') {
+    storageList.sort((a, b) => {
+      const vA = parseFloat(String(a[perfSortKey] || "").replace('%','')) || -999;
+      const vB = parseFloat(String(b[perfSortKey] || "").replace('%','')) || -999;
+      return perfSortDir === 'desc' ? vB - vA : vA - vB;
+    });
+  }
+
+  document.querySelectorAll('th.sortable').forEach(th => {
+    const key = th.id.replace('sort-', '');
+    th.classList.remove('sort-desc', 'sort-asc');
+    if (key === perfSortKey && perfSortDir !== 'original') {
+      th.classList.add('sort-' + perfSortDir);
+    }
+  });
 
   document.getElementById('perfTbody').innerHTML = storageList.map(r => {
     const entry = parseFloat(String(r.EntryPrice || 0).replace(/[^-0-9.]/g, ""));
@@ -455,16 +581,20 @@ function render() {
         <td class="col-sig" style="text-align:center;">${getBadges(r)}</td>
         <td class="col-price numRight" style="color:var(--muted)">${fmtPrice(r.EntryPrice)}</td>
         <td class="col-price numRight" style="color:${current > entry ? 'var(--bad)' : 'inherit'};">${fmtPrice(r.Close_Today)}</td>
-        <td class="col-perf numRight" style="color:${getPerfColor(r.Return)}; font-weight:700;">${pctTxt(r.Return)}</td>
-        <td class="col-perf numRight" style="color:${getPerfColor(r.D1)}">${pctTxt(r.D1)}</td>
-        <td class="col-perf numRight" style="color:${getPerfColor(r.D3)}">${pctTxt(r.D3)}</td>
-        <td class="col-perf numRight" style="color:${getPerfColor(r.D5)}">${pctTxt(r.D5)}</td>
-        <td class="col-perf numRight" style="color:${getPerfColor(r.D7)}">${pctTxt(r.D7)}</td>
-        <td class="col-perf numRight" style="color:${getPerfColor(r.D9)}">${pctTxt(r.D9)}</td>
+        <td class="col-perf numRight" style="color:${getPerfColor(r.Return)}; font-weight:700;">${getPctTxt(r.Return)}</td>
+        <td class="col-perf numRight" style="color:${getPerfColor(r.D1)}">${getPctTxt(r.D1)}</td>
+        <td class="col-perf numRight" style="color:${getPerfColor(r.D3)}">${getPctTxt(r.D3)}</td>
+        <td class="col-perf numRight" style="color:${getPerfColor(r.D5)}">${getPctTxt(r.D5)}</td>
+        <td class="col-perf numRight" style="color:${getPerfColor(r.D7)}">${getPctTxt(r.D7)}</td>
+        <td class="col-perf numRight" style="color:${getPerfColor(r.D9)}">${getPctTxt(r.D9)}</td>
       </tr>
     `;
   }).join('');
 }
+
+document.querySelectorAll('th.sortable').forEach(th => {
+  th.onclick = () => handlePerfSort(th.id.replace('sort-', ''));
+});
 
 function switchList(mode) { currentMode = mode; render(); }
 document.getElementById('tabScreen').onclick = () => {
@@ -478,6 +608,7 @@ document.getElementById('tabPerf').onclick = () => {
   document.getElementById('perfView').style.display = 'flex';
   document.getElementById('tabPerf').classList.add('on');
   document.getElementById('tabScreen').classList.remove('on');
+  render(); 
 };
 document.getElementById('btnRefresh').onclick = load;
 window.onload = load;
