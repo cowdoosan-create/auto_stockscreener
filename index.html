@@ -134,7 +134,7 @@
     td { padding: 10px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .numRight { text-align:right; font-family: 'Roboto Mono', monospace; }
 
-    /* 메인 테이블 컬럼 너비 (수정 금지 유지) */
+    /* 메인 성과 추적 보드 열 간격 (고정 유지) */
     .col-code { width: 60px; }
     .col-name { width: 110px; }
     .col-price { width: 85px; }
@@ -145,7 +145,7 @@
     .col-date { width: 85px; }
     .col-perf { width: 70px; }
 
-    /* --- Best 5 요약 보드 전용 스타일 (좌측 배치 및 테두리 포함) --- */
+    /* --- Best 5 요약 보드 전용 스타일 (테두리/가독성/모바일 최적화) --- */
     .top-stats-container {
       display: flex;
       justify-content: flex-start; /* 좌측 정렬 */
@@ -153,18 +153,21 @@
       flex-shrink: 0;
       width: 100%;
     }
-    
+
     .mini-card {
       background: var(--panel2);
-      border: 1px solid var(--line); /* 테두리가 콘텐츠 전체를 감싸도록 설정 */
+      border: 1px solid var(--line);
       border-radius: 12px;
       padding: 10px;
-      width: 175px; /* 60 + 50 + 30 + 패딩 및 보정값 */
+      width: 100%;
+      max-width: 520px;
       flex-shrink: 0;
       box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-      display: inline-block;
+      display: block;
+      overflow-x: auto; /* 작은 화면에서 열이 잘리면 가로 스크롤 */
+      -webkit-overflow-scrolling: touch;
     }
-    
+
     .mini-card h4 { 
       margin: 0 0 8px 0; 
       font-size: 12px; 
@@ -172,38 +175,64 @@
       color: var(--bad); 
       border-bottom: 1px solid var(--line);
       padding-bottom: 5px;
+      white-space: nowrap;
     }
-    
-    .mini-table { 
-      width: 140px; /* 60 + 50 + 30 */
-      border-collapse: collapse; 
-      font-size: 10px; 
-      table-layout: fixed; 
-    }
-    .mini-table th { 
-      background: none; 
-      padding: 4px 1px; 
-      color: var(--muted); 
-      border-bottom: 1px solid var(--line); 
-      position: static; 
-      text-transform: none; 
-      letter-spacing: -0.5px; 
-      font-weight: bold;
-      text-align: left;
-    }
-    .mini-table td { 
-      padding: 6px 1px; 
-      border-bottom: 1px solid rgba(255,255,255,0.03); 
-      white-space: nowrap; 
-      overflow: hidden; 
-      text-overflow: ellipsis; 
-    }
-    
-    /* 요약 보드 전용 고정 픽셀 너비 적용 */
-    .best-name { width: 60px !important; }
-    .best-sig { width: 50px !important; text-align: center; }
-    .best-perf { width: 30px !important; text-align: right; }
 
+    .mini-table {
+      width: 100%;
+      min-width: 280px; /* iPhone에서도 3열이 안 잘리게 최소폭 확보 */
+      border-collapse: collapse;
+      font-size: 10px;
+      table-layout: fixed;
+    }
+
+    .mini-table th {
+      background: none;
+      padding: 4px 3px; 
+      color: var(--muted);
+      border-bottom: 1px solid var(--line);
+      position: static;
+      text-transform: none;
+      letter-spacing: -0.4px;
+      font-weight: 800;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .mini-table td {
+      padding: 6px 3px; 
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* 열 폭: 비율 기반 설정 */
+    .best-name { width: 46% !important; }
+    .best-sig  { width: 34% !important; text-align: center; }
+    .best-perf { width: 20% !important; text-align: right; }
+
+    /* 시그널 배지 컴팩트화 및 줄바꿈 허용 */
+    .mini-card td.best-sig { white-space: normal; }
+    .mini-card .badge-sig {
+      padding: 1px 4px;
+      border-radius: 8px;
+      font-size: 8px;
+      font-weight: 900;
+      margin: 1px 2px 1px 0;
+    }
+    .mini-card .badge-sig::before { width: 3px; height: 3px; margin-right: 2px; }
+
+    /* 초소형 화면 추가 압축 */
+    @media (max-width: 430px) {
+      .mini-card { padding: 9px; max-width: 100%; }
+      .mini-card h4 { font-size: 11px; }
+      .mini-table { font-size: 9px; min-width: 260px; }
+      .mini-table th { padding: 3px 2px; }
+      .mini-table td { padding: 5px 2px; }
+      .mini-card .badge-sig { font-size: 7.5px; padding: 1px 3px; }
+    }
+
+    /* 기존 공통 뱃지 스타일 */
     .badge-sig { 
       display: inline-flex; 
       align-items: center; 
@@ -296,6 +325,7 @@
       </section>
 
       <section id="perfView" style="display:none; flex-direction: column; height: 100%;">
+        <!-- Best 5 요약 보드 - 중앙 배치 -->
         <div class="top-stats-container">
           <div class="mini-card">
             <h4>🔥 수익률 Best 5</h4>
@@ -545,12 +575,12 @@ function render() {
     return isNaN(x) ? 'inherit' : (x > 0 ? 'var(--bad)' : '#fff');
   };
 
-  // Best 5 Render - 고정 픽셀 규격 적용 및 클래스 일치화
+  // Best 5 Render - 고정 픽셀 클래스 대신 비율 기반 매핑
   document.getElementById('bestTbody').innerHTML = calcList.slice(0, 5).map(r => `
     <tr class="clickable" onclick='openDetail(${JSON.stringify(r)})'>
       <td class="best-name">${r.Name}</td>
       <td class="best-sig">${getBadges(r)}</td>
-      <td class="best-perf" style="color:var(--bad); font-weight:800; letter-spacing:-1px;">${getPctTxt(r.Return)}</td>
+      <td class="best-perf" style="color:var(--bad); font-weight:800;">${getPctTxt(r.Return)}</td>
     </tr>
   `).join('');
 
