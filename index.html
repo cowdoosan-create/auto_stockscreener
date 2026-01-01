@@ -545,12 +545,12 @@ function render() {
     return isNaN(x) ? 'inherit' : (x > 0 ? 'var(--bad)' : '#fff');
   };
 
-  // Best 5 Render - 고정 픽셀 규격 적용
+  // Best 5 Render - 고정 픽셀 규격 적용 및 클래스 일치화
   document.getElementById('bestTbody').innerHTML = calcList.slice(0, 5).map(r => `
     <tr class="clickable" onclick='openDetail(${JSON.stringify(r)})'>
-      <td class="best-name" style="width:60px !important;">${r.Name}</td>
-      <td class="best-sig" style="width:50px !important; text-align:center;">${getBadges(r)}</td>
-      <td class="best-perf" style="width:30px !important; text-align:right; color:var(--bad); font-weight:800; letter-spacing:-1px;">${getPctTxt(r.Return)}</td>
+      <td class="best-name">${r.Name}</td>
+      <td class="best-sig">${getBadges(r)}</td>
+      <td class="best-perf" style="color:var(--bad); font-weight:800; letter-spacing:-1px;">${getPctTxt(r.Return)}</td>
     </tr>
   `).join('');
 
