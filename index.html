@@ -258,10 +258,17 @@
       text-overflow: ellipsis;
     }
 
-    /* 성과 테이블 열 간격 조정 */
-    .best-date { width: 20% !important; color: var(--muted); font-family: 'Roboto Mono', monospace; }
-    .best-name { width: 30% !important; }
-    .best-sig  { width: 30% !important; text-align: center; }
+    /* 성과 테이블 열 간격 및 모바일 최적화 */
+    .best-date { width: 18% !important; color: var(--muted); font-family: 'Roboto Mono', monospace; }
+    /* 이름 컬럼: 줄바꿈 허용(white-space: normal) 및 넘침 표시(overflow: visible) */
+    .best-name { 
+      width: 35% !important; 
+      white-space: normal !important; 
+      overflow: visible !important;
+      text-overflow: clip !important;
+      line-height: 1.2; 
+    }
+    .best-sig  { width: 27% !important; text-align: center; }
     .best-perf { width: 20% !important; text-align: right; }
 
     .mini-card td.best-sig { white-space: normal; }
@@ -687,7 +694,8 @@ function render() {
   const fmtName = (r) => {
     const cnt = stockCounts[r.Code] || 0;
     if (cnt > 1) {
-       return `${r.Name}<span style="font-size:11px; color:var(--muted); margin-left:2px;">(${cnt})</span>`;
+       // 작은 글꼴, 옅은 색상으로 처리
+       return `${r.Name}<span style="font-size:0.8em; color:var(--muted); margin-left:2px; font-weight:normal;">(${cnt})</span>`;
     }
     return r.Name;
   };
@@ -713,8 +721,8 @@ function render() {
 
   document.getElementById('bestTbody').innerHTML = calcList.slice(0, 5).map(r => `
     <tr class="clickable" onclick='openDetail(${JSON.stringify(r)})'>
-      <td class="best-date">${(r.DetectDate || "").split(' ')[0]}</td> 
-      <td class="best-name">${fmtName(r)}</td> <!-- 이름에 카운트 적용 -->
+      <td class="best-date">${(r.DetectDate || "").split(' ')[0].substring(5)}</td> <!-- 월-일만 표시 (공간 확보) -->
+      <td class="best-name">${fmtName(r)}</td> 
       <td class="best-sig">${getBadges(r)}</td>
       <td class="best-perf" style="color:var(--bad); font-weight:800;">${getPctTxt(r.Return)}</td>
     </tr>
@@ -755,7 +763,7 @@ function render() {
         <tr class="clickable" onclick='openDetail(${JSON.stringify(r)})'>
           <td class="col-date" style="color:var(--muted)">${(r.DetectDate || "").split(' ')[0]}</td>
           <td class="col-code">${String(r.Code).padStart(6,'0')}</td>
-          <td class="col-name" style="font-weight:700;">${fmtName(r)}</td> <!-- 이름에 카운트 적용 -->
+          <td class="col-name" style="font-weight:700;">${fmtName(r)}</td> 
           <td class="col-sig" style="text-align:center;">${getBadges(r)}</td>
           <td class="col-sell" style="text-align:center;">${sellSignalBadge}</td>
           <td class="col-price numRight" style="color:var(--muted)">${fmtPrice(r.EntryPrice)}</td>
