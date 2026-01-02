@@ -99,6 +99,7 @@
     .filter-btn[data-filter="TREND"] { color: #34d399; border-color: rgba(52, 211, 153, 0.2); }
     .filter-btn[data-filter="PULLBACK"] { color: #fbbf24; border-color: rgba(251, 191, 36, 0.2); }
     .filter-btn[data-filter="BREAKOUT"] { color: #fb7185; border-color: rgba(251, 113, 133, 0.2); }
+    .filter-btn[data-filter="SELL"] { color: #c084fc; border-color: rgba(192, 132, 252, 0.2); }
 
 
     .main{ 
@@ -336,6 +337,7 @@
         <button class="filter-btn" onclick="setPerfFilter('TREND', this)" data-filter="TREND">추세</button>
         <button class="filter-btn" onclick="setPerfFilter('PULLBACK', this)" data-filter="PULLBACK">눌림</button>
         <button class="filter-btn" onclick="setPerfFilter('BREAKOUT', this)" data-filter="BREAKOUT">돌파</button>
+        <button class="filter-btn" onclick="setPerfFilter('SELL', this)" data-filter="SELL">매도포착</button>
       </div>
     </div>
   </div>
@@ -487,7 +489,7 @@ let data = { ALL:[], TREND:[], PULLBACK:[], BREAKOUT:[], STORAGE:[] };
 let currentMode = 'ALL';
 let perfSortKey = null; 
 let perfSortDir = 'original';
-let perfFilter = 'ALL'; // Performance view filter: ALL, TREND, PULLBACK, BREAKOUT
+let perfFilter = 'ALL'; // Performance view filter: ALL, TREND, PULLBACK, BREAKOUT, SELL
 
 function parseCSV(text) {
   const rows = [];
@@ -539,6 +541,14 @@ function getSigCount(r) {
 function checkSignal(r, type) {
     if (type === 'ALL') return true;
     
+    // 매도 신호 로직 추가
+    if (type === 'SELL') {
+        const bbUpper = parseFloat(String(r.BB_Upper || 0).replace(/[^-0-9.]/g, ""));
+        const current = parseFloat(String(r.Close_Today || 0).replace(/[^-0-9.]/g, ""));
+        const sheetSellSignal = String(r['매도신호'] || "").trim().toUpperCase();
+        return (sheetSellSignal === "TRUE") || (bbUpper > 0 && current > (bbUpper * 1.03));
+    }
+
     // 1. Explicit Column Check
     let colVal = "";
     if (type === 'TREND') colVal = r.Trend;
@@ -548,12 +558,9 @@ function checkSignal(r, type) {
     if (String(colVal).toUpperCase() === 'TRUE') return true;
     
     // 2. Fallback text check logic (mirrors getBadges)
-    // If the explicit column is missing or false, verify if the keyword exists in the row data
-    // This handles cases where data might be in a combined 'Signal' column
     const rowStr = Object.values(r).join(" ").toUpperCase();
     const map = { 'TREND': '추세', 'PULLBACK': '눌림', 'BREAKOUT': '돌파' };
     
-    // Search for English key or Korean key
     if (rowStr.includes(type) || rowStr.includes(map[type])) return true;
     
     return false;
@@ -670,7 +677,7 @@ function render() {
   }
 
   // Update Best 5 Title
-  const mapTitle = { 'ALL': '(전체)', 'TREND': '(추세)', 'PULLBACK': '(눌림)', 'BREAKOUT': '(돌파)' };
+  const mapTitle = { 'ALL': '(전체)', 'TREND': '(추세)', 'PULLBACK': '(눌림)', 'BREAKOUT': '(돌파)', 'SELL': '(매도포착)' };
   document.getElementById('bestTitle').textContent = `🔥 수익률 Best 5 ${mapTitle[perfFilter]}`;
 
   // Best 5 Calculation (Based on Filtered Data)
