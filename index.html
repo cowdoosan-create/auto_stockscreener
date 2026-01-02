@@ -394,7 +394,7 @@
             <table class="mini-table">
               <thead>
                 <tr>
-                  <th class="best-date">포착일</th> <!-- 추가된 열 -->
+                  <th class="best-date">포착일</th>
                   <th class="best-name">종목명</th>
                   <th class="best-sig">시그널</th>
                   <th class="best-perf">수익률</th>
@@ -676,6 +676,22 @@ function render() {
     storageList = storageList.filter(r => checkSignal(r, perfFilter));
   }
 
+  // Count duplicates in the filtered list
+  const stockCounts = {};
+  storageList.forEach(item => {
+    const code = item.Code;
+    stockCounts[code] = (stockCounts[code] || 0) + 1;
+  });
+
+  // Helper to format name with count
+  const fmtName = (r) => {
+    const cnt = stockCounts[r.Code] || 0;
+    if (cnt > 1) {
+       return `${r.Name}<span style="font-size:11px; color:var(--muted); margin-left:2px;">(${cnt})</span>`;
+    }
+    return r.Name;
+  };
+
   // Update Best 5 Title
   const mapTitle = { 'ALL': '(전체)', 'TREND': '(추세)', 'PULLBACK': '(눌림)', 'BREAKOUT': '(돌파)', 'SELL': '(매도포착)' };
   document.getElementById('bestTitle').textContent = `🔥 수익률 Best 5 ${mapTitle[perfFilter]}`;
@@ -697,8 +713,8 @@ function render() {
 
   document.getElementById('bestTbody').innerHTML = calcList.slice(0, 5).map(r => `
     <tr class="clickable" onclick='openDetail(${JSON.stringify(r)})'>
-      <td class="best-date">${(r.DetectDate || "").split(' ')[0]}</td> <!-- 날짜 데이터 추가 -->
-      <td class="best-name">${r.Name}</td>
+      <td class="best-date">${(r.DetectDate || "").split(' ')[0]}</td> 
+      <td class="best-name">${fmtName(r)}</td> <!-- 이름에 카운트 적용 -->
       <td class="best-sig">${getBadges(r)}</td>
       <td class="best-perf" style="color:var(--bad); font-weight:800;">${getPctTxt(r.Return)}</td>
     </tr>
@@ -739,7 +755,7 @@ function render() {
         <tr class="clickable" onclick='openDetail(${JSON.stringify(r)})'>
           <td class="col-date" style="color:var(--muted)">${(r.DetectDate || "").split(' ')[0]}</td>
           <td class="col-code">${String(r.Code).padStart(6,'0')}</td>
-          <td class="col-name" style="font-weight:700;">${r.Name}</td>
+          <td class="col-name" style="font-weight:700;">${fmtName(r)}</td> <!-- 이름에 카운트 적용 -->
           <td class="col-sig" style="text-align:center;">${getBadges(r)}</td>
           <td class="col-sell" style="text-align:center;">${sellSignalBadge}</td>
           <td class="col-price numRight" style="color:var(--muted)">${fmtPrice(r.EntryPrice)}</td>
